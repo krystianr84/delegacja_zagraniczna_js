@@ -200,3 +200,149 @@ export function slownie(x, jedn = '') {
 export function slownieZlotych(x) {
   return !Number(x) ? '' : slownie(x, ['złoty i', 'złote i', 'złotych i']);
 }
+
+// ---------- koszty do rachunku delegacji (przejazdy i sekcja 5) ----------
+// Tylko do druku: kwoty wpisane ręcznie, waluta obca po kursie NBP jak dieta (ROUND(kwota × kurs; 2)).
+
+/** Pozycje sekcji 5 Kalkulatora (pozostałe koszty podróży). */
+export const KOSZTY = [
+  { klucz: 'ryczaltyDojazdy', nazwa: 'Ryczałty za dojazdy', uwaga: 'Ryczałt za dojazdy: 10% diety za każdą rozpoczętą dobę pobytu (§16 ust. 3).' },
+  { klucz: 'dojazdy', nazwa: 'Dojazdy udokumentowane' },
+  { klucz: 'noclegi', nazwa: 'Noclegi wg rachunków' },
+  { klucz: 'noclegiRyczalt', nazwa: 'Noclegi – ryczałt', uwaga: 'Ryczałt za nocleg bez rachunku: 25% limitu noclegu danego kraju (§16 ust. 2).' },
+  { klucz: 'inne', nazwa: 'Inne wydatki wg załączników', uwaga: 'Np. parking, opłaty drogowe, wiza, telefon – wg rachunków.' },
+];
+
+/** Kwota wpisana ręcznie: „1 234,56” / „380” / 380 → liczba; puste → null; ujemna lub niepoprawna → NaN. */
+export function parsujKwote(v) {
+  if (pusta(v)) return null;
+  if (typeof v === 'number') return v >= 0 ? v : NaN;
+  const s = String(v).replace(/[\s ]/g, '').replace(',', '.');
+  return /^\d+(\.\d+)?$/.test(s) ? Number(s) : NaN;
+}
+
+/**
+ * Koszt w PLN. Pusta lub zerowa kwota → null (pusta komórka w Excelu).
+ * Wynik: { kwota, waluta, kurs, pln, blad } – blad: 'kwota' (niepoprawna) albo 'kurs' (brak kursu NBP).
+ */
+export function kosztPLN(kwota, waluta, kursy = {}) {
+  const k = parsujKwote(kwota);
+  if (k === null || k === 0) return null;
+  const w = pusta(waluta) ? 'PLN' : waluta;
+  if (Number.isNaN(k)) return { kwota: k, waluta: w, kurs: null, pln: null, blad: 'kwota' };
+  if (w === 'PLN') return { kwota: k, waluta: w, kurs: null, pln: k, blad: null };
+  const kurs = typeof kursy[w]?.kurs === 'number' ? kursy[w].kurs : null;
+  return { kwota: k, waluta: w, kurs, pln: kurs === null ? null : round(k * kurs, 2), blad: kurs === null ? 'kurs' : null };
+}
+
+/**
+ * Przejazdy (koszt w każdym etapie z krajem i w powrocie) i pozostałe koszty (sekcja 5) w PLN oraz ogółem:
+ * dieta razem + przejazdy + pozostałe. Ogółem = null, gdy brakuje diety albo któryś koszt ma błąd
+ * (Excel w takiej sytuacji po cichu pomija koszt bez kursu – tu wolimy nie pokazywać niepełnej kwoty).
+ */
+export function obliczKoszty(podroz, kursy = {}, dietaRazem = null) {
+  const przejazdy = etapyZKrajem(podroz).map((e) => kosztPLN(e.koszt, e.waluta, kursy));
+  const powrot = kosztPLN(podroz.powrotPrzejazd?.koszt, podroz.powrotPrzejazd?.waluta, kursy);
+  const pozostale = Object.fromEntries(KOSZTY.map(({ klucz }) =>
+    [klucz, kosztPLN(podroz.koszty?.[klucz]?.kwota, podroz.koszty?.[klucz]?.waluta, kursy)]));
+  const blad = [...przejazdy, powrot, ...Object.values(pozostale)].some((k) => k?.blad);
+  const suma = (lista) => round(lista.reduce((s, k) => s + (k?.pln ?? 0), 0), 2);
+  const przejazdyRazem = suma([...przejazdy, powrot]);
+  const pozostaleRazem = suma(Object.values(pozostale));
+  return {
+    przejazdy, powrot, pozostale, przejazdyRazem, pozostaleRazem, blad,
+    ogolem: blad || dietaRazem === null ? null : round(dietaRazem + przejazdyRazem + pozostaleRazem, 2),
+  };
+}
+
+/** Waluty, dla których potrzebny jest kurs: waluty diet z etapów oraz waluty obce kosztów z kwotą. */
+export function walutyWUzyciu(podroz, kraje) {
+  const mk = mapaKrajow(kraje);
+  const w = new Set();
+  const etapy = etapyZKrajem(podroz);
+  for (const e of etapy) if (mk.has(e.kraj)) w.add(mk.get(e.kraj)[1]);
+  const koszty = [...etapy, podroz.powrotPrzejazd ?? {},
+    ...Object.values(podroz.koszty ?? {}).map((k) => ({ koszt: k?.kwota, waluta: k?.waluta }))];
+  for (const k of koszty) {
+    if (!pusta(k.waluta) && k.waluta !== 'PLN' && parsujKwote(k.koszt) > 0) w.add(k.waluta);
+  }
+  return [...w];
+}
+
+// ---------- pola z błędem (czerwone podświetlenie jak w Kalkulatorze) ----------
+
+/**
+ * Klucze pól z błędem, np. 'etapy.0.kraj', 'powrot', 'koszty.noclegi.waluta', 'kursyReczne.EUR.tabela'.
+ * Reguły jak w formatowaniu warunkowym arkusza – także te, które nie blokują wyniku (np. przyjazd poza etapem).
+ */
+export function polaZBledem(podroz, kraje, kursy = {}, kursyReczne = {}) {
+  const bledy = new Set();
+  const mk = mapaKrajow(kraje);
+  const etapy = podroz.etapy ?? [];
+  const zle = (v) => Number.isNaN(minuty(v));
+  const dodaj = (warunek, klucz) => { if (warunek) bledy.add(klucz); };
+
+  dodaj(pusta(etapy[0]?.kraj), 'etapy.0.kraj');
+  etapy.forEach((e, i) => {
+    if (i > 0) dodaj(pusta(e.kraj) && etapy.slice(i + 1).some((x) => !pusta(x.kraj)), `etapy.${i}.kraj`);
+    dodaj(!pusta(e.kraj) && !mk.has(e.kraj), `etapy.${i}.kraj`);
+    for (const p of ['wjazd', 'przyjazd', 'wyjazd']) dodaj(zle(e[p]), `etapy.${i}.${p}`);
+  });
+  for (const p of ['powrot', 'wyjazdZMiejscowosci', 'powrotDoMiejscowosci', 'dataKursu', 'dataPolecenia']) dodaj(zle(podroz[p]), p);
+
+  const zKrajem = etapy.map((e, i) => ({ e, i })).filter(({ e }) => !pusta(e.kraj));
+  const ok = (v) => { const m = minuty(v); return Number.isFinite(m) ? m : null; };
+  const powrot = ok(podroz.powrot);
+  zKrajem.forEach(({ e, i }, j) => {
+    const wjazd = ok(e.wjazd);
+    dodaj(pusta(e.wjazd), `etapy.${i}.wjazd`);
+    if (j > 0) {
+      const poprz = ok(zKrajem[j - 1].e.wjazd);
+      dodaj(wjazd !== null && poprz !== null && wjazd <= poprz, `etapy.${i}.wjazd`);
+    }
+    // koniec etapu: wjazd do kolejnego kraju albo powrót przez granicę
+    const nastepny = j + 1 < zKrajem.length ? ok(zKrajem[j + 1].e.wjazd) : null;
+    const nast = nastepny ?? powrot;
+    const przyjazd = ok(e.przyjazd), wyjazd = ok(e.wyjazd);
+    if (przyjazd !== null && wjazd !== null) dodaj(przyjazd < wjazd || (nast !== null && przyjazd > nast), `etapy.${i}.przyjazd`);
+    const od = przyjazd ?? wjazd;
+    if (wyjazd !== null && od !== null) dodaj(wyjazd < od || (nast !== null && wyjazd > nast), `etapy.${i}.wyjazd`);
+    for (const p of ['sniadania', 'obiady', 'kolacje']) {
+      dodaj(!pusta(e[p]) && !(Number.isInteger(Number(e[p])) && Number(e[p]) >= 0), `etapy.${i}.${p}`);
+    }
+  });
+  if (zKrajem.length) {
+    const maks = Math.max(...zKrajem.map(({ e }) => ok(e.wjazd) ?? -Infinity));
+    dodaj(powrot === null || powrot <= maks, 'powrot');
+  }
+  // posiłki ponad liczbę rozpoczętych dób (tylko gdy daty etapów są poprawne)
+  if (zKrajem.length && powrot !== null && zKrajem.every(({ e }) => ok(e.wjazd) !== null)) {
+    obliczEtapy(podroz, mk, kursy).forEach((w, j) => {
+      const doby = roundUp(w.liczbaDiet, 0);
+      for (const p of ['sniadania', 'obiady', 'kolacje']) dodaj((Number(zKrajem[j].e[p]) || 0) > doby, `etapy.${zKrajem[j].i}.${p}`);
+    });
+  }
+  dodaj(pusta(podroz.dataKursu), 'dataKursu');
+  const wjazd1 = ok(etapy[0]?.wjazd), wyjazdZ = ok(podroz.wyjazdZMiejscowosci), powrotDo = ok(podroz.powrotDoMiejscowosci);
+  dodaj(wyjazdZ !== null && wjazd1 !== null && wyjazdZ > wjazd1, 'wyjazdZMiejscowosci');
+  dodaj(powrotDo !== null && powrot !== null && powrotDo < powrot, 'powrotDoMiejscowosci');
+
+  // koszty: niepoprawna kwota albo brak kursu waluty
+  const koszt = (kwota, waluta, prefiks, poleKwoty) => {
+    const k = kosztPLN(kwota, waluta, kursy);
+    dodaj(k?.blad === 'kwota', `${prefiks}.${poleKwoty}`);
+    dodaj(k?.blad === 'kurs', `${prefiks}.waluta`);
+  };
+  zKrajem.forEach(({ e, i }) => koszt(e.koszt, e.waluta, `etapy.${i}`, 'koszt'));
+  koszt(podroz.powrotPrzejazd?.koszt, podroz.powrotPrzejazd?.waluta, 'powrotPrzejazd', 'koszt');
+  for (const { klucz } of KOSZTY) koszt(podroz.koszty?.[klucz]?.kwota, podroz.koszty?.[klucz]?.waluta, `koszty.${klucz}`, 'kwota');
+
+  // kurs ręczny: niepoprawny kurs, brak daty notowania albo nr tabeli
+  for (const [w, r] of Object.entries(kursyReczne ?? {})) {
+    if (pusta(r?.kurs)) continue;
+    dodaj(!(parsujKwote(r.kurs) > 0), `kursyReczne.${w}.kurs`);
+    dodaj(pusta(r.data) || zle(r.data), `kursyReczne.${w}.data`);
+    dodaj(pusta(r.tabela), `kursyReczne.${w}.tabela`);
+  }
+  return bledy;
+}

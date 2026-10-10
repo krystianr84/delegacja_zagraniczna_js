@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kalkulator diety zagranicznej</title>
+  <meta name="description" content="Dieta zagraniczna wg rozporządzenia MPiPS z 29.01.2013 z kursem średnim NBP – wyniki zgodne z wersją excelową.">
+  <link rel="stylesheet" href="style.css">
+  <script type="module" src="app.js"></script>
+</head>
+<body>
+  <header class="pasek">
+    <div class="pasek-tytul">
+      <h1>Kalkulator diety zagranicznej</h1>
+      <p class="podtytul">wg rozporządzenia MPiPS z 29.01.2013 (t.j. Dz.U. 2023 poz. 2190) · kursy NBP pobierane automatycznie</p>
+    </div>
+    <div class="kontrola" id="kontrola" role="status" aria-live="polite">Wczytywanie…</div>
+    <div class="kafelki">
+      <div class="kafel"><div class="kafel-etykieta" id="kafel-dieta-etykieta">Do wypłaty – dieta</div><div class="kafel-wartosc" id="kafel-dieta">—</div></div>
+      <div class="kafel"><div class="kafel-etykieta">Wydatki (z zaliczki na wydatki)</div><div class="kafel-wartosc" id="kafel-wydatki">—</div></div>
+      <div class="kafel"><div class="kafel-etykieta">Ogółem do rozliczenia</div><div class="kafel-wartosc" id="kafel-ogolem">—</div></div>
+    </div>
+  </header>
+
+  <main id="formularz">
+    <div class="akcje">
+      <button type="button" id="przyklad">Wczytaj przykład</button>
+      <button type="button" id="wyczysc">Wyczyść formularz</button>
+      <span class="legenda" aria-hidden="true">
+        <span class="lg lg-wymagane">wymagane</span>
+        <span class="lg lg-pole">do wpisania</span>
+        <span class="lg lg-wynik">liczy się samo</span>
+        <span class="lg lg-blad">błąd w danych</span>
+      </span>
+    </div>
+
+    <section>
+      <h2>1. Dane podróży i polecenia wyjazdu</h2>
+      <div class="siatka">
+        <label>Pracownik (imię i nazwisko)<input data-pole="pracownik" autocomplete="name"></label>
+        <label>Stanowisko służbowe<input data-pole="stanowisko"></label>
+        <label class="szeroka">Cel podróży / zlecenie serwisowe<input data-pole="cel"></label>
+        <label>Nr polecenia wyjazdu<input data-pole="nrPolecenia"></label>
+        <label>Data polecenia (z dnia)<input type="date" data-pole="dataPolecenia"></label>
+        <label>Miejscowość wyjazdu i powrotu<input data-pole="miejscowosc"></label>
+        <label>Środki lokomocji<input data-pole="srodki" placeholder="np. samochód służbowy">
+          <small>Domyślny środek lokomocji w tabeli przejazdów delegacji.</small></label>
+        <label>Wyjazd z miejscowości (data i godz.)<input type="datetime-local" data-pole="wyjazdZMiejscowosci">
+          <small>Wyjazd z domu / siedziby. Puste = przekroczenie granicy z etapu 1.</small></label>
+        <label>Powrót do miejscowości (data i godz.)<input type="datetime-local" data-pole="powrotDoMiejscowosci">
+          <small>Powrót do domu / siedziby. Puste = powrót przez granicę.</small></label>
+        <label>Data kursu NBP<input type="date" data-pole="dataKursu" class="wymagane">
+          <small>Dzień wypłaty zaliczki / rozliczenia. Kurs średni NBP pobiera się automatycznie.</small></label>
+        <label>Kurs NBP z dnia<select data-pole="trybKursu" class="wymagane">
+            <option>dzień przed datą kursu</option>
+            <option>w dniu daty kursu</option>
+          </select>
+          <small>„dzień przed” = ostatni dzień roboczy przed datą (praktyka podatkowa); „w dniu” = §20 rozporządzenia.</small></label>
+        <label>Pobrana zaliczka (zł)<input data-pole="zaliczka" inputmode="decimal" class="kwota">
+          <small>Tylko do druku delegacji: pomniejsza kwotę do wypłaty.</small></label>
+        <label>Termin rozliczenia zaliczki (dni)<input type="number" min="0" step="1" inputmode="numeric" data-pole="terminRozliczenia"></label>
+        <label>Liczba załączonych dowodów<input type="number" min="0" step="1" inputmode="numeric" data-pole="dowody">
+          <small>Rachunki, bilety itp. – do pola „Załączam … dowodów”.</small></label>
+      </div>
+    </section>
+
+    <section>
+      <h2>2. Pobyt za granicą – kraje, wjazd i zapewnione posiłki</h2>
+      <p class="opis">Każdy kraj to osobny etap. Etap trwa do wjazdu do następnego kraju albo do powrotu przez granicę.
+        Kolejny etap pojawia się po wybraniu kraju w poprzednim.</p>
+      <div id="etapy"></div>
+      <fieldset class="etap powrot">
+        <legend>Powrót do Polski</legend>
+        <div class="grupy">
+          <div class="grupa grupa-dieta">
+            <h3>Koniec pobytu za granicą (§12)</h3>
+            <label>Powrót przez granicę (data i godz.)<input type="datetime-local" data-pole="powrot" class="wymagane">
+              <small>Podróż lądowa: przekroczenie granicy w drodze powrotnej. Samolot: lądowanie na pierwszym lotnisku w kraju.</small></label>
+          </div>
+          <div class="grupa grupa-przejazd">
+            <h3>Przejazd powrotny (do rachunku kosztów)</h3>
+            <div class="siatka-przejazd">
+              <label class="szeroka">Środek lokomocji<input data-pole="powrotPrzejazd.srodek" data-domyslny-srodek></label>
+              <label>Koszt<input data-pole="powrotPrzejazd.koszt" inputmode="decimal" class="kwota"></label>
+              <label>Waluta<select data-pole="powrotPrzejazd.waluta" data-waluty></select></label>
+              <div class="wynik-pole"><span>Koszt (PLN)</span><output data-wynik="powrotPrzejazd.pln"></output></div>
+            </div>
+          </div>
+        </div>
+      </fieldset>
+    </section>
+
+    <section>
+      <h2>Kursy NBP</h2>
+      <p class="opis" id="kursy-opis"></p>
+      <div class="przewijana">
+        <table class="tabela" id="kursy">
+          <thead>
+            <tr><th>Waluta</th><th>Kurs średni (PLN za 1 jedn.)</th><th>Data notowania</th><th>Nr tabeli NBP</th><th>Źródło kursu</th>
+              <th class="reczny">Kurs ręczny (opcjonalnie)</th><th class="reczny">Data notowania (ręcznie)</th><th class="reczny">Nr tabeli (ręcznie)</th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <p class="akcje-wiersz"><button type="button" id="pobierz-kursy">Pobierz kursy ponownie</button>
+        <span id="kursy-status" role="status" aria-live="polite"></span></p>
+      <details class="uwagi">
+        <summary>Kiedy wpisać kurs ręczny?</summary>
+        <p>Tylko wtedy, gdy kurs nie pobiera się automatycznie (np. sieć firmowa blokuje api.nbp.pl). Kurs średni, datę
+          i nr tabeli A znajdziesz na <a href="https://nbp.pl/statystyka-i-sprawozdawczosc/kursy/tabela-a/" target="_blank" rel="noopener">nbp.pl</a>.
+          Wpisany kurs zastępuje kurs z NBP; żeby wrócić do kursu automatycznego, usuń kurs ręczny.</p>
+        <p>Kurs „z dnia” to ostatni opublikowany kurs do tego dnia – zapytanie obejmuje 14 dni wstecz, więc weekendy i święta nie powodują błędu.</p>
+      </details>
+    </section>
+
+    <section>
+      <h2>3. Wyliczenie diety (automatycznie)</h2>
+      <div class="przewijana">
+        <table class="tabela liczby" id="wyliczenie">
+          <thead>
+            <tr><th>Etap</th><th>Kraj</th><th>Waluta</th><th>Dieta za dobę</th><th>Od</th><th>Do</th><th>Czas (godz.)</th>
+              <th>Liczba diet</th><th>Potrącenie za posiłki</th><th>Dieta należna (waluta)</th><th>Kurs NBP</th><th>Dieta należna (PLN)</th></tr>
+          </thead>
+          <tbody></tbody>
+          <tfoot><tr class="razem"><th colspan="11">DIETA RAZEM (PLN)</th><td id="dieta-razem"></td></tr></tfoot>
+        </table>
+      </div>
+    </section>
+
+    <section>
+      <h2>4. Dieta według walut</h2>
+      <div class="przewijana">
+        <table class="tabela liczby waska" id="waluty">
+          <thead><tr><th>Waluta</th><th>Dieta (waluta)</th><th>Kurs NBP</th><th>Dieta (PLN)</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section>
+      <h2>5. Pozostałe koszty podróży (do rachunku kosztów delegacji)</h2>
+      <div class="przewijana">
+        <table class="tabela liczby waska" id="koszty">
+          <thead><tr><th>Pozycja</th><th>Kwota</th><th>Waluta</th><th>Kurs NBP</th><th>Kwota (PLN)</th></tr></thead>
+          <tbody></tbody>
+          <tfoot>
+            <tr><th colspan="4">Dieta razem</th><td id="suma-dieta"></td></tr>
+            <tr><th colspan="4">Przejazdy</th><td id="suma-przejazdy"></td></tr>
+            <tr><th colspan="4">Pozostałe koszty</th><td id="suma-pozostale"></td></tr>
+            <tr class="razem"><th colspan="4">OGÓŁEM do rozliczenia (PLN): diety + przejazdy + pozostałe koszty</th><td id="ogolem"></td></tr>
+          </tfoot>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <footer class="stopka">
+    <p>Liczona jest tylko dieta zagraniczna (§12–§14) wg rozporządzenia MPiPS z 29.01.2013 (t.j. Dz.U. 2023 poz. 2190). Przejazdy, ryczałty, noclegi i inne wydatki wpisujesz kwotami – tylko do druku delegacji.
+      Strona nic nie wysyła poza zapytaniami o kurs do api.nbp.pl.</p>
+  </footer>
+
+  <template id="szablon-etapu">
+    <fieldset class="etap">
+      <legend>Etap <span data-nr></span></legend>
+      <div class="grupy">
+        <div class="grupa grupa-dieta">
+          <h3>Kraj, wjazd i zapewnione posiłki (dieta)</h3>
+          <label>Kraj<select data-pole="etapy.#.kraj" data-kraje></select>
+            <small data-wynik="etapy.#.stawka"></small></label>
+          <label>Wjazd do kraju (data i godz.)<input type="datetime-local" data-pole="etapy.#.wjazd">
+            <small data-podpowiedz-wjazd></small></label>
+          <div class="posilki">
+            <label>Śniadania<input type="number" min="0" step="1" inputmode="numeric" data-pole="etapy.#.sniadania"></label>
+            <label>Obiady<input type="number" min="0" step="1" inputmode="numeric" data-pole="etapy.#.obiady"></label>
+            <label>Kolacje<input type="number" min="0" step="1" inputmode="numeric" data-pole="etapy.#.kolacje"></label>
+          </div>
+          <small>Posiłki zapewnione w tym kraju (np. śniadania w cenie hotelu) pomniejszają dietę (§14): śniadanie 15%, obiad i kolacja po 30%.</small>
+        </div>
+        <div class="grupa grupa-miejsce">
+          <h3>Miejscowość i godziny (do druku delegacji)</h3>
+          <label>Miejscowość<input data-pole="etapy.#.miejscowosc"></label>
+          <label>Przyjazd (data i godz.)<input type="datetime-local" data-pole="etapy.#.przyjazd">
+            <small>Dotarcie na miejsce (hotel / klient). Puste = chwila wjazdu do kraju.</small></label>
+          <label>Wyjazd (data i godz.)<input type="datetime-local" data-pole="etapy.#.wyjazd">
+            <small>Wyjazd z miejscowości. Puste = wjazd do kolejnego kraju albo powrót przez granicę.</small></label>
+        </div>
+        <div class="grupa grupa-przejazd">
+          <h3>Przejazd do tego kraju (do rachunku kosztów)</h3>
+          <div class="siatka-przejazd">
+            <label class="szeroka">Środek lokomocji<input data-pole="etapy.#.srodek" data-domyslny-srodek></label>
+            <label>Koszt<input data-pole="etapy.#.koszt" inputmode="decimal" class="kwota"></label>
+            <label>Waluta<select data-pole="etapy.#.waluta" data-waluty></select></label>
+            <div class="wynik-pole"><span>Koszt (PLN)</span><output data-wynik="etapy.#.pln"></output></div>
+          </div>
+        </div>
+      </div>
+    </fieldset>
+  </template>
+</body>
+</html>

@@ -1,0 +1,205 @@
+/* Kolory jak w wersji excelowej (build.py): sekcje 1F3864, pola FFF2CC, sumy E2EFDA, wymagane ED7D31, błąd FFC7CE/9C0006 */
+:root {
+  --sekcja: #1f3864;
+  --miejsce: #2e75b6;
+  --przejazd: #548235;
+  --pole: #fff2cc;
+  --suma: #e2efda;
+  --wymagane: #ed7d31;
+  --blad-tlo: #ffc7ce;
+  --blad: #9c0006;
+  --ok-tlo: #c6efce;
+  --ok: #006100;
+  --tekst: #1a1a1a;
+  --tlo: #f4f6f9;
+  --karta: #ffffff;
+  --ramka: #c9ced6;
+  --przygaszony: #5b6470;
+  --promien: 6px;
+  color-scheme: light;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font: 15px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  color: var(--tekst);
+  background: var(--tlo);
+}
+
+h1 { font-size: 1.25rem; margin: 0; color: var(--sekcja); }
+h2 {
+  margin: 0 0 12px;
+  padding: 6px 10px;
+  font-size: 1rem;
+  color: #fff;
+  background: var(--sekcja);
+  border-radius: var(--promien);
+}
+h3 { margin: 0 0 8px; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.02em; }
+
+/* ---------- pasek z kontrolą i kafelkami ---------- */
+
+.pasek {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: grid;
+  gap: 8px;
+  padding: 10px 16px;
+  background: var(--karta);
+  border-bottom: 1px solid var(--ramka);
+  box-shadow: 0 2px 6px rgb(0 0 0 / 6%);
+}
+.podtytul { margin: 2px 0 0; font-size: 0.75rem; color: var(--przygaszony); }
+
+.kontrola {
+  padding: 6px 10px;
+  border-radius: var(--promien);
+  font-weight: 700;
+  background: #eef0f3;
+}
+.kontrola.ok { background: var(--ok-tlo); color: var(--ok); }
+.kontrola.ok::before { content: "Kontrola danych: "; font-weight: 400; }
+.kontrola.blad { background: var(--blad-tlo); color: var(--blad); }
+
+.kafelki { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.kafel { border-radius: var(--promien); overflow: hidden; text-align: center; background: var(--suma); }
+.kafel-etykieta {
+  padding: 3px 6px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #fff;
+  background: var(--sekcja);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.kafel-wartosc { padding: 4px 6px; font-size: 1.05rem; font-weight: 700; color: var(--sekcja); white-space: nowrap; }
+
+@media (max-width: 599px) {
+  .podtytul { display: none; }   /* przyklejony pasek ma być niski; podstawa prawna jest też w stopce */
+  .kafel-etykieta { white-space: normal; line-height: 1.15; font-size: 0.66rem; }
+  .kafel { display: flex; flex-direction: column; }
+  .kafel-etykieta { flex: 1; display: flex; align-items: center; justify-content: center; }
+}
+
+@media (min-width: 900px) {
+  .pasek { grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr); align-items: center; }
+  .pasek-tytul { grid-column: 1; }
+  .kafelki { grid-column: 2; grid-row: 1 / span 2; }
+  .kontrola { grid-column: 1; }
+  .kafel-wartosc { font-size: 1.35rem; }
+}
+
+/* ---------- formularz ---------- */
+
+main { max-width: 1200px; margin: 0 auto; padding: 12px 16px 24px; }
+section {
+  margin: 0 0 16px;
+  padding: 12px;
+  background: var(--karta);
+  border: 1px solid var(--ramka);
+  border-radius: calc(var(--promien) + 2px);
+}
+.opis { margin: 0 0 10px; color: var(--przygaszony); font-size: 0.85rem; }
+
+.akcje { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px; }
+.akcje-wiersz { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 10px 0 0; }
+button {
+  font: inherit;
+  padding: 7px 14px;
+  border: 1px solid var(--sekcja);
+  border-radius: var(--promien);
+  background: #fff;
+  color: var(--sekcja);
+  cursor: pointer;
+}
+button:hover { background: #e8edf5; }
+button.potwierdz { background: var(--blad-tlo); border-color: var(--blad); color: var(--blad); }
+
+.legenda { display: flex; flex-wrap: wrap; gap: 6px; margin-left: auto; font-size: 0.72rem; }
+.lg { padding: 2px 8px; border: 1px solid var(--ramka); border-radius: 4px; }
+.lg-wymagane { background: var(--pole); border: 2px solid var(--wymagane); }
+.lg-pole { background: var(--pole); }
+.lg-wynik { background: #fff; }
+.lg-blad { background: var(--blad-tlo); color: var(--blad); }
+
+.siatka { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px 14px; }
+.szeroka { grid-column: 1 / -1; }
+
+label { display: flex; flex-direction: column; gap: 3px; font-size: 0.82rem; font-weight: 600; min-width: 0; }
+small { display: block; font-size: 0.72rem; font-weight: 400; color: var(--przygaszony); }
+
+input, select {
+  width: 100%;
+  min-width: 0;
+  font: inherit;
+  font-size: 16px;   /* bez powiększania strony na iOS */
+  font-weight: 400;
+  padding: 6px 8px;
+  color: #0000c8;    /* niebieski tekst pól do wpisania, jak w Excelu */
+  background: var(--pole);
+  border: 1px solid var(--ramka);
+  border-radius: 4px;
+}
+input:focus, select:focus { outline: 2px solid var(--miejsce); outline-offset: 0; }
+input.kwota { text-align: right; }
+.wymagane { border: 2px solid var(--wymagane); }
+input.blad, select.blad { background: var(--blad-tlo); color: var(--blad); font-weight: 700; border-color: var(--blad); }
+.blad-tekst { color: var(--blad); font-weight: 700; }
+.pogrubione { font-weight: 700; }
+
+/* ---------- etapy ---------- */
+
+.etap {
+  margin: 0 0 12px;
+  padding: 10px;
+  border: 1px solid var(--ramka);
+  border-radius: var(--promien);
+}
+.etap legend { padding: 0 6px; font-weight: 700; color: var(--sekcja); }
+.etap.powrot { margin-bottom: 0; background: #f7f8fa; }
+.grupy { display: grid; gap: 10px; }
+@media (min-width: 900px) { .grupy { grid-template-columns: 1.15fr 1fr 1.15fr; } }
+.grupa { display: flex; flex-direction: column; gap: 8px; padding: 8px; border-top: 4px solid; border-radius: 4px; background: #fbfbfc; }
+.grupa-dieta { border-color: var(--sekcja); }
+.grupa-dieta h3 { color: var(--sekcja); }
+.grupa-miejsce { border-color: var(--miejsce); }
+.grupa-miejsce h3 { color: var(--miejsce); }
+.grupa-przejazd { border-color: var(--przejazd); }
+.grupa-przejazd h3 { color: var(--przejazd); }
+.posilki { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.siatka-przejazd { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
+.wynik-pole { display: flex; flex-direction: column; gap: 3px; font-size: 0.82rem; font-weight: 600; }
+.wynik-pole output { padding: 7px 8px; text-align: right; font-weight: 700; border-bottom: 1px solid var(--ramka); min-height: 2.2em; }
+
+/* ---------- tabele ---------- */
+
+.przewijana { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.tabela { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+.tabela.waska { width: auto; min-width: min(100%, 560px); }
+.tabela th, .tabela td { padding: 5px 8px; border: 1px solid var(--ramka); vertical-align: middle; }
+.tabela thead th { color: #fff; background: var(--sekcja); font-size: 0.75rem; text-align: center; }
+.tabela thead th.reczny { background: var(--miejsce); }
+.tabela tbody th { text-align: left; font-weight: 600; white-space: nowrap; }
+.tabela.liczby td { text-align: right; white-space: nowrap; }
+.tabela.liczby td:nth-child(-n+3) { text-align: center; }
+#koszty td:nth-child(2) { text-align: left; }
+.tabela td input, .tabela td select { min-width: 7em; }
+#kursy td { white-space: nowrap; text-align: center; }
+#kursy td.reczny input { min-width: 8.5em; }
+.tabela tfoot th { text-align: right; font-weight: 600; }
+.tabela tfoot td { text-align: right; font-weight: 700; white-space: nowrap; }
+.tabela tr.razem th, .tabela tr.razem td { background: var(--suma); color: var(--sekcja); font-weight: 700; }
+.tabela td.pusto { text-align: center; color: var(--przygaszony); }
+.reczny-zrodlo { color: var(--wymagane); font-weight: 700; }
+#kursy-status { color: var(--blad); font-size: 0.85rem; }
+
+.uwagi { margin-top: 8px; font-size: 0.85rem; }
+.uwagi summary { cursor: pointer; color: var(--miejsce); }
+
+.stopka { max-width: 1200px; margin: 0 auto; padding: 0 16px 32px; font-size: 0.75rem; color: var(--przygaszony); }
+
+[hidden] { display: none !important; }

@@ -12,6 +12,7 @@ To nowy, niezależny projekt. Wzorcem merytorycznym jest wcześniejsza wersja ex
 
 - Zwykły HTML, CSS i moduły ES, **bez frameworka i bez kroku budowania** (bez npm-owych zależności w czasie działania).
 - Logika to czyste funkcje w `web/lib/` bez dostępu do DOM. Testy przez `node --test` (wbudowany runner, bez bibliotek).
+- `web/app.js` tylko łączy formularz z `web/lib/` (pola mają `data-pole` ze ścieżką w stanie, np. `etapy.0.kraj`). Podgląd lokalny: `node narzedzia/serwer.js` → http://localhost:8080/web/ (moduły ES nie działają z `file://`); strona czyta `../dane/kraje.json`, więc Pages musi serwować katalog główny repozytorium.
 - Kursy NBP: `fetch` z `https://api.nbp.pl/api/exchangerates/rates/A/{waluta}/{od}/{do}/?format=json`. API zwraca `Access-Control-Allow-Origin: *` (sprawdzone 10.10.2026). Nie dodawaj własnych nagłówków do zapytania, bo wymuszą preflight OPTIONS, a ten zwraca 404. Cache w `localStorage` i kurs ręczny jako tryb awaryjny.
 - Druk Delegacji (2 strony) i Raportu (1 strona) przez widok druku + `window.print()` („Zapisz jako PDF”), CSS `@page A4`.
 - Dane zostają w przeglądarce: autozapis w `localStorage` (każdy odczyt i zapis w try/catch) oraz eksport i import pliku `.json` podróży. Strona nic nie wysyła poza zapytaniami o kurs do NBP.
