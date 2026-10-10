@@ -1,0 +1,10 @@
+{
+  "opis": "Zestawy stawek diet i limitów noclegów. Zestaw obowiązuje od dnia „od” do dnia przed „od” następnego zestawu; podróż liczy się zestawem z dnia jej rozpoczęcia. Nowe stawki: dodaj plik w formacie kraje.json i wpis z datą „od”.",
+  "zestawy": [
+    {
+      "od": "2022-11-29",
+      "podstawa": "załącznik do rozporządzenia MPiPS z 29.01.2013 (t.j. Dz.U. 2023 poz. 2190)",
+      "plik": "kraje.json"
+    }
+  ]
+}

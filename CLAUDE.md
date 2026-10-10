@@ -13,7 +13,7 @@ To nowy, niezależny projekt. Wzorcem merytorycznym jest wcześniejsza wersja ex
 - Zwykły HTML, CSS i moduły ES, **bez frameworka i bez kroku budowania** (bez npm-owych zależności w czasie działania).
 - Logika to czyste funkcje w `web/lib/` bez dostępu do DOM. Testy przez `node --test` (wbudowany runner, bez bibliotek).
 - Testy strony: `npm run test:przegladarka` (`narzedzia/sprawdz-przegladarke.mjs` – Chrome/Edge bez okna przez CDP, NBP podstawiany przez `Fetch`). Nazwa celowo bez `test-`: `node --test` uruchamia pliki `test-*.mjs`. Po zmianie w `web/` uruchom oba zestawy; GitHub Actions (`testy.yml`) robi to przy każdym pushu, `nbp.yml` co tydzień testuje żywe API.
-- `web/app.js` tylko łączy formularz z `web/lib/` (pola mają `data-pole` ze ścieżką w stanie, np. `etapy.0.kraj`). Podgląd lokalny: `node narzedzia/serwer.js` → http://localhost:8080/web/ (moduły ES nie działają z `file://`); strona czyta `../dane/kraje.json`, więc Pages musi serwować katalog główny repozytorium.
+- `web/app.js` tylko łączy formularz z `web/lib/` (pola mają `data-pole` ze ścieżką w stanie, np. `etapy.0.kraj`). Podgląd lokalny: `node narzedzia/serwer.js` → http://localhost:8080/web/ (moduły ES nie działają z `file://`); strona czyta `../dane/stawki.json` (i pliki krajów z niego), więc Pages musi serwować katalog główny repozytorium.
 - Kursy NBP: `fetch` z `https://api.nbp.pl/api/exchangerates/rates/A/{waluta}/{od}/{do}/?format=json`. API zwraca `Access-Control-Allow-Origin: *` (sprawdzone 10.10.2026). Nie dodawaj własnych nagłówków do zapytania, bo wymuszą preflight OPTIONS, a ten zwraca 404. Cache w `localStorage` i kurs ręczny jako tryb awaryjny.
 - Druk Delegacji (2 strony) i Raportu (1 strona) przez widok druku + `window.print()` („Zapisz jako PDF”), CSS `@page A4`.
   `web/lib/druk.js` odwzorowuje arkusze komórka w komórkę (szerokości kolumn, wysokości wierszy, scalenia, ramki; Delegacja skala 84%, Raport 74%). Porównane 11.10.2026 z PDF wyeksportowanym z `wydanie/…xlsx`: teksty identyczne, linie ramek w granicach ~2 mm. Domyślna wysokość wiersza: Raport 15 pt, Delegacja 14,3 pt (Excel zaokrągla wiersze do pikseli przy skali 84%).
@@ -23,7 +23,8 @@ To nowy, niezależny projekt. Wzorcem merytorycznym jest wcześniejsza wersja ex
 - Wersja: `web/lib/wersja.js` (nagłówek i stopka strony, pole `kalkulator` w pliku `.json`). Przy zmianie widocznej dla użytkownika podnieś numer i dopisz wpis w `CHANGELOG.md` (format jak w wersji excelowej: Dodano / Zmieniono / Naprawiono).
 - Wzorce druku z Excela: `test/wzorce/` (PDF-y, `eksport-z-excela.ps1`, `porownaj.py`, opis kalibracji 14,3 pt). Reguły ostrzeżeń są w dwóch miejscach: `polaZBledem()` (formularz) i `uwagaDelegacji()` (druk) – celowo osobne, jak w Excelu.
 - GitHub Pages: gałąź `main`, katalog główny; `index.html` w katalogu głównym przekierowuje na `web/`, `.nojekyll` wyłącza Jekylla.
-- `dane/kraje.json` – 120 państw `[nazwa, waluta, dieta, limit_noclegu]` z załącznika do rozporządzenia MPiPS z 29.01.2013 (t.j. Dz.U. 2023 poz. 2190), skopiowane z wersji excelowej.
+- `dane/kraje.json` – 120 państw `[nazwa, waluta, dieta, limit_noclegu]` z załącznika do rozporządzenia MPiPS z 29.01.2013 (t.j. Dz.U. 2023 poz. 2190), skopiowane z wersji excelowej. Format pliku zostaje taki jak w Excelu.
+- `dane/stawki.json` – zestawy stawek `{ od, podstawa, plik }`; podróż liczy się zestawem obowiązującym w dniu jej rozpoczęcia (`dataPodrozy()`: wyjazd z miejscowości, a gdy pusty – wjazd w etapie 1), cała podróż jednym zestawem. Nowe stawki = nowy plik krajów + wpis w `stawki.json`, nigdy edycja starego pliku (stare podróże muszą dawać te same kwoty). Wydruki nie pokazują zestawu (zgodność z Excelem); strona pokazuje go nad tabelą w sekcji 3.
 
 ## Reguły merytoryczne
 

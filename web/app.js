@@ -7,12 +7,13 @@ import { pustyStan, przykladowyStan, pobierz, ustaw, widoczneEtapy, pustyEtap, E
 import * as fmt from './lib/format.js';
 import { doPliku, zPliku, nazwaPliku, czyPusty, wczytajAutozapis, autozapis } from './lib/zapis.js';
 import { WERSJA, WERSJA_DATA } from './lib/wersja.js';
+import { zestawyStawek, dataPodrozy, zestawNaDzien, nazwyKrajow } from './lib/stawki.js';
 
 const $ = (sel, el = document) => el.querySelector(sel);
 const $$ = (sel, el = document) => [...el.querySelectorAll(sel)];
 
-let kraje = [];
-let mapaKrajow = new Map();
+let zestawy = [];            // zestawy stawek z datą „od” (dane/stawki.json)
+let mapaKrajow = new Map();  // kraje z zestawu obowiązującego w dniu rozpoczęcia podróży (ustawia przelicz())
 let stan = pustyStan();
 
 // magazyn na cache kursów – sam dostęp do localStorage potrafi rzucić wyjątek (zablokowane dane witryny)
@@ -43,7 +44,7 @@ function zbudujFormularz() {
       : 'Wjazd do tego kraju z poprzedniego (koniec poprzedniego etapu).';
     kontener.append(el);
   }
-  for (const s of $$('[data-kraje]')) opcje(s, kraje.map((k) => k[0]), '– wybierz kraj –');
+  for (const s of $$('[data-kraje]')) opcje(s, nazwyKrajow(zestawy), '– wybierz kraj –');
   for (const s of $$('[data-waluty]')) opcje(s, WALUTY_KOSZTOW);
 
   const tbody = $('#koszty tbody');
@@ -175,7 +176,21 @@ function ustawWynik(klucz, tekst, blad = false) {
   }
 }
 
+/** Stawki z dnia rozpoczęcia podróży → mapaKrajow; opis użytego zestawu w sekcji 3. */
+function ustawStawki() {
+  const data = dataPodrozy(stan);
+  const { zestaw, przedPierwszym } = zestawNaDzien(zestawy, data);
+  mapaKrajow = new Map(zestaw.kraje.map((k) => [k[0], k]));
+  const el = $('#stawki-opis');
+  el.textContent = `Stawki diet obowiązujące od ${fmt.data(zestaw.od)}${zestaw.podstawa ? ` (${zestaw.podstawa})` : ''}`
+    + (!data ? ' – najnowsze; po wpisaniu dat podróż liczy się stawkami z dnia jej rozpoczęcia.'
+      : przedPierwszym ? `. Uwaga: podróż zaczyna się ${fmt.data(data)}, a kalkulator nie ma starszych stawek – sprawdź stawki z tego dnia.`
+        : ` – według dnia rozpoczęcia podróży (${fmt.data(data)}).`);
+  el.classList.toggle('blad-tekst', przedPierwszym);
+}
+
 function przelicz() {
+  ustawStawki();
   const waluty = walutyWUzyciu(stan, mapaKrajow);
   const { kursy, reczne } = aktualneKursy(waluty);
   const wynik = oblicz(stan, mapaKrajow, kursy);
@@ -394,15 +409,20 @@ function przyciskZPotwierdzeniem(btn, akcja, czyPytac = () => true) {
 async function start() {
   for (const el of $$('[data-wersja]')) el.textContent = `ver. ${WERSJA} (${WERSJA_DATA})`;
   try {
-    const odp = await fetch('../dane/kraje.json');
-    if (!odp.ok) throw new Error(`HTTP ${odp.status}`);
-    kraje = await odp.json();
+    const json = async (plik) => {
+      const odp = await fetch(`../dane/${plik}`);
+      if (!odp.ok) throw new Error(`${plik}: HTTP ${odp.status}`);
+      return odp.json();
+    };
+    const indeks = await json('stawki.json');
+    const pliki = [...new Set((indeks.zestawy ?? []).map((z) => z.plik))];
+    const tresci = await Promise.all(pliki.map(json));
+    zestawy = zestawyStawek(indeks, Object.fromEntries(pliki.map((p, i) => [p, tresci[i]])));
   } catch (e) {
-    $('#kontrola').textContent = `Nie udało się wczytać listy krajów (dane/kraje.json): ${e.message}`;
+    $('#kontrola').textContent = `Nie udało się wczytać stawek diet (dane/stawki.json): ${e.message}`;
     $('#kontrola').classList.add('blad');
     return;
   }
-  mapaKrajow = new Map(kraje.map((k) => [k[0], k]));
   zbudujFormularz();
   const zapisany = wczytajAutozapis(magazyn);
   if (zapisany) {

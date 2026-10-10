@@ -2,6 +2,15 @@
 
 Numer wersji jest widoczny w nagłówku i w stopce strony kalkulatora oraz w zapisanym pliku `.json` podróży. Strona zawsze działa w najnowszej wersji – poprzednich nie trzeba pobierać ani instalować.
 
+## 1.2 (11.10.2026)
+
+**Dodano**
+- **Stawki diet z datą obowiązywania** (`dane/stawki.json`). Podróż liczy się stawkami z dnia jej rozpoczęcia (wyjazd z miejscowości, a gdy pusty – wjazd do pierwszego kraju) – po zmianie przepisów wczytana stara podróż da te same kwoty co wcześniej. Nad tabelą w sekcji 3 widać, który zestaw stawek został użyty, a przy podróży sprzed najstarszego zestawu – ostrzeżenie.
+- Instrukcja dodawania nowych stawek w README; testy wyboru zestawu (także w przeglądarce, z testowym zestawem od 01.01.2027).
+
+**Bez zmian**
+- Obecne stawki (od 29.11.2022) i wszystkie wyniki – wydruki nadal zgodne z wersją excelową.
+
 ## 1.1 (11.10.2026)
 
 **Dodano**

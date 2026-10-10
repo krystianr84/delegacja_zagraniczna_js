@@ -125,7 +125,13 @@ Dieta razem: 215,53 EUR = **930,46 PLN**. Do tego noclegi 380 EUR × 4,3171 = 1 
 
 **Przypadek kontrolny**: Węgry, 28.09.2026 12:00 → 02.10.2026 16:00, bez posiłków, kurs z 08.10.2026 → **4 dni 4 godz. 0 min, 190,67 EUR, 834,92 PLN** (kurs 4,3789, tabela 196/A/NBP/2026).
 
-**Aktualność stawek:** stawki diet i limity noclegów są w pliku [`dane/kraje.json`](dane/kraje.json) – te same co w wersji excelowej. Po zmianie przepisów wystarczy go poprawić; strona od razu liczy według nowych stawek. W 2026 r. był projekt podwyżki stawek – sprawdź, czy weszła w życie.
+**Aktualność stawek:** stawki diet i limity noclegów są w pliku [`dane/kraje.json`](dane/kraje.json) – te same co w wersji excelowej. Kalkulator pamięta, **od kiedy** obowiązują ([`dane/stawki.json`](dane/stawki.json)), i liczy każdą podróż stawkami z dnia jej rozpoczęcia (wyjazd z miejscowości, a gdy pusty – wjazd do pierwszego kraju). Dzięki temu po zmianie przepisów stara podróż wczytana z pliku `.json` da te same kwoty co wcześniej. Który zestaw stawek został użyty, widać nad tabelą w sekcji 3. W 2026 r. był projekt podwyżki stawek – sprawdź, czy weszła w życie.
+
+**Nowe stawki** (po zmianie rozporządzenia):
+1. Skopiuj `dane/kraje.json` do nowego pliku, np. `dane/kraje-2027-01-01.json`, i popraw w nim stawki i limity (format: `[nazwa, waluta, dieta, limit noclegu]`).
+2. W `dane/stawki.json` dopisz zestaw z datą wejścia w życie, podstawą prawną i nazwą pliku:
+   `{ "od": "2027-01-01", "podstawa": "…", "plik": "kraje-2027-01-01.json" }`.
+3. Uruchom testy (`npm test`) – sprawdzają poprawność plików stawek. Jeśli przepisy przejściowe każą liczyć inaczej niż według dnia rozpoczęcia podróży, trzeba zmienić `dataPodrozy()` w `web/lib/stawki.js`.
 
 ## Zgłoś błąd albo pomysł
 
@@ -143,9 +149,11 @@ web/
   lib/nbp.js         kursy NBP: zapytanie, 404/400, cache w localStorage, kurs ręczny
   lib/druk.js        Delegacja i Raport (teksty jak formuły arkuszy + układ komórek)
   lib/zapis.js       plik .json i autozapis
+  lib/stawki.js      wybór zestawu stawek według dnia rozpoczęcia podróży
   lib/format.js, lib/model.js
   lib/wersja.js      numer wersji (przy zmianie także CHANGELOG.md)
-dane/kraje.json      120 państw: [nazwa, waluta, dieta, limit noclegu]
+dane/stawki.json     zestawy stawek z datą „od” (podróż liczy się zestawem z dnia rozpoczęcia)
+dane/kraje.json      120 państw: [nazwa, waluta, dieta, limit noclegu] – zestaw od 29.11.2022
 test/                testy obliczeń (node --test)
 test/wzorce/         PDF-y z wersji excelowej i skrypty do porównania układu druku
 narzedzia/serwer.js                podgląd lokalny
@@ -169,7 +177,7 @@ Moduły ES nie działają z `file://`, więc do podglądu potrzebny jest serwer 
 
 **Kolejność zaokrągleń** dla każdego etapu: czas w minutach zaokrąglony do pełnej minuty → liczba diet → potrącenie za posiłki `ROUND(…; 2)` → dieta w walucie `MAX(0; ROUND(…; 2))` → dieta w PLN `ROUND(dieta × kurs; 2)` osobno dla etapu; dieta razem to suma kwot etapów.
 
-**Publikacja**: GitHub Pages z gałęzi `main`, katalog główny (`/`) – każdy push na `main` aktualizuje stronę. `index.html` w katalogu głównym przekierowuje na `web/`; strona czyta `../dane/kraje.json`.
+**Publikacja**: GitHub Pages z gałęzi `main`, katalog główny (`/`) – każdy push na `main` aktualizuje stronę. `index.html` w katalogu głównym przekierowuje na `web/`; strona czyta `../dane/stawki.json` i wskazane w nim pliki krajów.
 
 ## Zastrzeżenie
 

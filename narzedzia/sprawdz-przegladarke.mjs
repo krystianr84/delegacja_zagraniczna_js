@@ -27,6 +27,7 @@ const EUR = [
   ['195/A/NBP/2026', '2026-10-07', 4.3797], ['196/A/NBP/2026', '2026-10-08', 4.3789], ['197/A/NBP/2026', '2026-10-09', 4.3775],
 ];
 let nbpOffline = false;
+let stawkiTestowe = false;   // true: do dane/stawki.json dochodzi testowy zestaw od 01.01.2027 (Niemcy 60 EUR)
 const zapytaniaNBP = [];
 const naglowkiNBP = [];   // [metoda, nazwy nagłówków] każdego zapytania do api.nbp.pl
 
@@ -37,6 +38,16 @@ function odpowiedzNBP(url) {
   return rates.length
     ? { status: 200, body: JSON.stringify({ table: 'A', code: m[1], rates }), typ: 'application/json; charset=utf-8' }
     : { status: 404, body: '404 NotFound - Not Found - Brak danych', typ: 'text/plain; charset=utf-8' };
+}
+
+function odpowiedzStawki(url) {
+  const dane = (p) => JSON.parse(readFileSync(new URL(`../dane/${p}`, import.meta.url), 'utf8'));
+  if (url.endsWith('/dane/stawki.json')) {
+    const indeks = dane('stawki.json');
+    indeks.zestawy.push({ od: '2027-01-01', podstawa: 'zestaw testowy', plik: 'kraje-test-2027.json' });
+    return JSON.stringify(indeks);
+  }
+  return JSON.stringify(dane('kraje.json').map((k) => (k[0] === 'Niemcy' ? ['Niemcy', 'EUR', 60, 170] : k)));
 }
 
 // ---------- przeglądarka ----------
@@ -87,6 +98,15 @@ async function uruchomPrzegladarke() {
     }
     if (m.method === 'Runtime.exceptionThrown') wyjatki.push(m.params.exceptionDetails.exception?.description ?? m.params.exceptionDetails.text);
     if (m.method === 'Runtime.consoleAPICalled' && m.params.type === 'error') wyjatki.push(m.params.args.map((a) => a.value ?? a.description).join(' '));
+    if (m.method === 'Fetch.requestPaused' && !m.params.request.url.includes('api.nbp.pl')) {
+      const { requestId, request } = m.params;
+      if (!stawkiTestowe) { cdp('Fetch.continueRequest', { requestId }); return; }
+      cdp('Fetch.fulfillRequest', {
+        requestId, responseCode: 200, body: Buffer.from(odpowiedzStawki(request.url)).toString('base64'),
+        responseHeaders: [{ name: 'Content-Type', value: 'application/json; charset=utf-8' }, { name: 'Cache-Control', value: 'no-store' }],
+      });
+      return;
+    }
     if (m.method === 'Fetch.requestPaused') {
       const { requestId, request } = m.params;
       naglowkiNBP.push([request.method, Object.keys(request.headers).map((n) => n.toLowerCase())]);
@@ -102,7 +122,7 @@ async function uruchomPrzegladarke() {
   await cdp('Runtime.enable');
   await cdp('Page.enable');
   await cdp('DOM.enable');
-  await cdp('Fetch.enable', { patterns: [{ urlPattern: 'https://api.nbp.pl/*' }] });
+  await cdp('Fetch.enable', { patterns: [{ urlPattern: 'https://api.nbp.pl/*' }, { urlPattern: '*/dane/stawki.json' }, { urlPattern: '*/dane/kraje-test-2027.json' }] });
   const zamknij = () => { try { ws.close(); } catch {} proc.kill(); setTimeout(() => rmSync(profil, { recursive: true, force: true }), 500); };
   return { cdp, wyjatki, zamknij, profil };
 }
@@ -314,6 +334,36 @@ krok('brak połączenia z NBP: komunikat, potem kurs ręczny 4,4 → 838,95 zł'
   assert.deepEqual(await kafle(), ['838,95 zł', '0,00 zł', '838,95 zł']);
   assert.equal(await js(`document.querySelector('#kursy tbody tr').cells[4].textContent`), 'wpisany ręcznie');
   nbpOffline = false;
+});
+
+krok('stawki z datą: podróż liczona stawkami z dnia rozpoczęcia (testowy zestaw od 01.01.2027)', async () => {
+  stawkiTestowe = true;
+  try {
+    await otworz();
+    await js(`document.querySelector('#przyklad').click()`);
+    await js(`document.querySelector('#przyklad').click()`);   // drugie kliknięcie potwierdza nadpisanie
+    await czekaj(`document.querySelector('#kafel-dieta').textContent.includes('930,46')`, 'dieta 930,46 (stare stawki)');
+    assert.match(await tekst('#stawki-opis'), /^Stawki diet obowiązujące od 29\.11\.2022 .* według dnia rozpoczęcia podróży \(14\.09\.2026\)\.$/);
+    assert.ok(await js(`[...document.querySelector('[data-pole="etapy.0.kraj"]').options].some((o) => o.value === 'Niemcy')`));
+
+    const pola = ['wyjazdZMiejscowosci', 'powrotDoMiejscowosci', 'powrot',
+      ...[0, 1].flatMap((i) => ['wjazd', 'przyjazd', 'wyjazd'].map((k) => `etapy.${i}.${k}`))];
+    await ustaw(await js(`${JSON.stringify(pola)}.map((p) => [p, document.querySelector('[data-pole="' + p + '"]').value.replace('2026-09', '2027-01')])`));
+    assert.equal(await tekst('#kontrola'), 'OK');
+    assert.match(await tekst('#stawki-opis'), /od 01\.01\.2027 \(zestaw testowy\) – według dnia rozpoczęcia podróży \(14\.01\.2027\)/);
+    // Niemcy 60 EUR: 60 × 2⅓ − 2 śniadania × 15% = 122,00 EUR; Austria bez zmian 115,90 EUR
+    assert.deepEqual(await js(`[...document.querySelectorAll('#wyliczenie tbody tr')].map((r) => r.cells[9].textContent)`), ['122,00', '115,90']);
+    assert.equal(await js(`document.querySelector('#wyliczenie tbody tr').cells[3].textContent`), '60,00');
+
+    await ustaw([['wyjazdZMiejscowosci', '2026-12-31T22:00']]);   // wyjazd przed zmianą → cała podróż starymi stawkami
+    assert.deepEqual(await js(`[...document.querySelectorAll('#wyliczenie tbody tr')].map((r) => r.cells[9].textContent)`), ['99,63', '115,90']);
+
+    await ustaw([['wyjazdZMiejscowosci', '2022-11-01T05:00']]);   // przed pierwszym zestawem → ostrzeżenie
+    assert.match(await tekst('#stawki-opis'), /Uwaga: podróż zaczyna się 01\.11\.2022/);
+    assert.ok(await js(`document.querySelector('#stawki-opis').classList.contains('blad-tekst')`));
+  } finally {
+    stawkiTestowe = false;
+  }
 });
 
 krok('telefon (390 px): bez przewijania w poziomie, podgląd wydruku mieści się na ekranie', async () => {
