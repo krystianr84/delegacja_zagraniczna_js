@@ -12,8 +12,8 @@ body:
     id: wersja
     attributes:
       label: Wersja kalkulatora
-      description: Widać ją w stopce strony, np. „ver. 1.1 (11.10.2026)”.
-      placeholder: ver. 1.1
+      description: Widać ją w stopce strony, np. „ver. 1.2 (11.10.2026)”.
+      placeholder: ver. 1.2
     validations:
       required: true
   - type: textarea

@@ -12,8 +12,9 @@ Kalkulator diety z tytułu zagranicznej podróży służbowej. Działa w przegl�
 - **Wyniki jak w wersji excelowej.** Te same reguły i te same zaokrąglenia – wydruki z obu wersji zgadzają się co do grosza.
 - **Kursy NBP pobierane automatycznie** z `api.nbp.pl`: średni kurs z tabeli A z dnia poprzedzającego datę kursu albo z tego dnia. Przy dniu wolnym brany jest ostatni wcześniejszy kurs.
 - **Waluta i stawka diety wynikają z kraju.** Dane obejmują 120 państw z załącznika do rozporządzenia.
+- **Stawki z datą obowiązywania.** Każda podróż liczy się stawkami z dnia jej rozpoczęcia – po zmianie przepisów stare rozliczenia dadzą te same kwoty.
 - **Do 5 krajów w jednej podróży**, dla każdego dieta liczona osobno, z potrąceniami za zapewnione posiłki.
-- **Druk delegacji i raport** na A4 – do drukarki albo do PDF.
+- **Druk delegacji i raport** na A4 – do drukarki albo do PDF, bez dopisków przeglądarki (data, adres strony).
 - **Dane zostają u Ciebie.** Formularz zapisuje się w przeglądarce, a podróż można zapisać do pliku `.json`. Strona niczego nie wysyła poza zapytaniami o kurs do NBP.
 
 ## ▶️ Otwórz
@@ -30,7 +31,7 @@ Na telefonie możesz dodać stronę do ekranu głównego (w menu przeglądarki: 
 
 ![Kalkulator](docs/kalkulator.png)
 
-**Wyliczenie diety** – osobno dla każdego kraju, z kursem NBP:
+**Wyliczenie diety** – osobno dla każdego kraju, z kursem NBP; nad tabelą widać, którymi stawkami liczono:
 
 ![Wyliczenie diety](docs/wyliczenie.png)
 
