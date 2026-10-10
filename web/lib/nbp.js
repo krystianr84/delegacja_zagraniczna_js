@@ -49,10 +49,22 @@ export function roznicaDni(a, b) {
   return Math.round((msDnia(b) - msDnia(a)) / 86400000);
 }
 
-/** Dzisiejsza data lokalna jako „RRRR-MM-DD”. */
+/** Dzisiejsza data lokalna (zegar urządzenia) jako „RRRR-MM-DD” – np. data sporządzenia wydruku. */
 export function dzisiaj(teraz = new Date()) {
   const p = (x) => String(x).padStart(2, '0');
   return `${teraz.getFullYear()}-${p(teraz.getMonth() + 1)}-${p(teraz.getDate())}`;
+}
+
+/**
+ * Dzisiejsza data w Warszawie – „dziś” dla NBP: od niej zależy, czy dzień jest z przyszłości (NBP: 400)
+ * i czy kurs da się zapamiętać. Zegar urządzenia za granicą (albo serwera CI w UTC) bywa w innym dniu.
+ */
+export function dzisWarszawa(teraz = new Date()) {
+  try {
+    return new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Warsaw', year: 'numeric', month: '2-digit', day: '2-digit' }).format(teraz);
+  } catch {
+    return dzisiaj(teraz);   // przeglądarka bez danych stref czasowych
+  }
 }
 
 /** Dzień, do którego szukamy ostatniego notowania: data kursu albo dzień wcześniej (praktyka podatkowa). */
@@ -71,7 +83,7 @@ export function urlKursow(waluta, od, doDnia) {
  * Brak notowań → BladNBP('brak'). API odpowiada 404, gdy w zakresie nie ma notowań, a 400 „Błędny zakres dat”, gdy
  * zakres kończy się po dzisiejszej dacie – takiego zapytania nie wysyłamy, a 400 z NBP (inny zegar) też znaczy „brak”.
  */
-export async function pobierzNotowania(waluta, od, doDnia, { fetch: f = globalThis.fetch, timeoutMs = 15000, dzis = dzisiaj() } = {}) {
+export async function pobierzNotowania(waluta, od, doDnia, { fetch: f = globalThis.fetch, timeoutMs = 15000, dzis = dzisWarszawa() } = {}) {
   if (roznicaDni(od, doDnia) < 0) throw new RangeError('Data „od” jest po dacie „do”');
   if (roznicaDni(od, doDnia) + 1 > MAKS_DNI) throw new RangeError(`Zakres dłuższy niż ${MAKS_DNI} dni`);
   if (doDnia > dzis) throw new BladNBP('brak', `Brak kursu ${waluta} z dnia ${doDnia} – data z przyszłości`);
@@ -121,7 +133,7 @@ function zapiszCache(magazyn, klucz, kurs) {
  * Do cache trafia tylko kurs, który już się nie zmieni: dzień z przeszłości albo notowanie z tego samego dnia
  * (dzisiejsza tabela ukazuje się około południa – rano wynikiem jest wczorajszy kurs, którego nie zapamiętujemy).
  */
-export async function pobierzKurs(waluta, dzien, { magazyn, dzis = dzisiaj(), ...opcje } = {}) {
+export async function pobierzKurs(waluta, dzien, { magazyn, dzis = dzisWarszawa(), ...opcje } = {}) {
   const klucz = `${waluta}:${dzien}`;
   const zCache = czytajCache(magazyn, klucz);
   if (zCache) return zCache;
@@ -152,7 +164,7 @@ export async function pobierzKursy(waluty, dataKursu, tryb = TRYB_DZIEN_PRZED, o
  * Notowania z okresu (sekcja B arkusza „Kursy NBP”), dzielone na zapytania po 93 dni.
  * Koniec okresu po dzisiejszej dacie jest przycinany do dziś; okres bez żadnego notowania daje pustą tablicę.
  */
-export async function pobierzKursyZOkresu(waluta, od, doDnia, { dzis = dzisiaj(), ...opcje } = {}) {
+export async function pobierzKursyZOkresu(waluta, od, doDnia, { dzis = dzisWarszawa(), ...opcje } = {}) {
   if (doDnia > dzis) doDnia = dzis;
   opcje = { ...opcje, dzis };
   const wynik = [];

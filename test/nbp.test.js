@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import {
   dzienSzukany, dodajDni, roznicaDni, urlKursow, pobierzNotowania, pobierzKurs, pobierzKursy, pobierzKursyZOkresu,
-  parsujKurs, zastosujReczne, BladNBP, TRYB_W_DNIU, TRYB_DZIEN_PRZED,
+  parsujKurs, zastosujReczne, BladNBP, TRYB_W_DNIU, TRYB_DZIEN_PRZED, dzisWarszawa,
 } from '../web/lib/nbp.js';
 import { oblicz } from '../web/lib/obliczenia.js';
 
@@ -56,6 +56,13 @@ test('dzień szukany: w dniu / dzień przed datą kursu', () => {
   assert.equal(dzienSzukany('2026-03-01'), '2026-02-28');
   assert.equal(dodajDni('2026-10-08T12:30', -14), '2026-09-24');
   assert.equal(dodajDni('2026-10-24', 2), '2026-10-26');   // przez zmianę czasu
+});
+
+test('dziś w Warszawie: inna data niż UTC i niż zegar urządzenia za granicą', () => {
+  assert.equal(dzisWarszawa(new Date('2026-10-10T22:58:00Z')), '2026-10-11');   // UTC jeszcze 10.10, w Warszawie 11.10
+  assert.equal(dzisWarszawa(new Date('2026-10-10T21:59:00Z')), '2026-10-10');
+  assert.equal(dzisWarszawa(new Date('2026-12-31T23:30:00Z')), '2027-01-01');   // zima: UTC+1
+  assert.equal(dzisWarszawa(new Date('2026-03-29T00:30:00Z')), '2026-03-29');   // dzień zmiany czasu
 });
 
 test('URL zapytania jak w CLAUDE.md', () => {
@@ -202,7 +209,8 @@ test('na żywo: api.nbp.pl (NBP_LIVE=1)', { skip: !process.env.NBP_LIVE && 'usta
   assert.deepEqual(bledy, {});
   assert.deepEqual(kursy.EUR, { kurs: 4.3789, data: '2026-10-08', tabela: '196/A/NBP/2026' });
   await assert.rejects(pobierzKurs('EUR', '2099-12-31'), (e) => e.powod === 'brak');
-  // NBP: 400 dla zakresu po dzisiejszej dacie – sprawdzamy, że nadal traktujemy to jako brak kursu
-  const jutro = dodajDni(new Date().toISOString().slice(0, 10), 1);
+  // NBP: 400 dla zakresu po dzisiejszej dacie (w Warszawie) – sprawdzamy, że nadal traktujemy to jako brak kursu.
+  // „Jutro” liczone od daty warszawskiej: data UTC bywa o dzień wcześniejsza (22:00–24:00 UTC).
+  const jutro = dodajDni(dzisWarszawa(), 1);
   await assert.rejects(pobierzKurs('EUR', jutro, { dzis: jutro }), (e) => e.powod === 'brak');
 });
