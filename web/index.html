@@ -25,8 +25,12 @@
 
   <main id="formularz">
     <div class="akcje">
+      <button type="button" id="zapisz-plik">Zapisz plik .json</button>
+      <button type="button" id="wczytaj-plik">Wczytaj plik .json</button>
+      <input type="file" id="plik" accept=".json,application/json" hidden>
       <button type="button" id="przyklad">Wczytaj przykład</button>
       <button type="button" id="wyczysc">Wyczyść formularz</button>
+      <span id="zapis-status" class="zapis-status" role="status" aria-live="polite"></span>
       <span class="legenda" aria-hidden="true">
         <span class="lg lg-wymagane">wymagane</span>
         <span class="lg lg-pole">do wpisania</span>
@@ -177,6 +181,8 @@
   <footer class="stopka">
     <p>Liczona jest tylko dieta zagraniczna (§12–§14) wg rozporządzenia MPiPS z 29.01.2013 (t.j. Dz.U. 2023 poz. 2190). Przejazdy, ryczałty, noclegi i inne wydatki wpisujesz kwotami – tylko do druku delegacji.
       Strona nic nie wysyła poza zapytaniami o kurs do api.nbp.pl.</p>
+    <p>Dane zostają w tej przeglądarce (autozapis). Żeby przenieść podróż na inne urządzenie albo zachować ją na później,
+      użyj „Zapisz plik .json”. · <a href="https://github.com/krystianr84/delegacja_zagraniczna_js" rel="noopener">Kod źródłowy</a> (licencja MIT)</p>
   </footer>
 
   <template id="szablon-etapu">

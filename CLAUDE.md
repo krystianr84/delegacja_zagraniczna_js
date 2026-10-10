@@ -17,6 +17,8 @@ To nowy, niezależny projekt. Wzorcem merytorycznym jest wcześniejsza wersja ex
 - Druk Delegacji (2 strony) i Raportu (1 strona) przez widok druku + `window.print()` („Zapisz jako PDF”), CSS `@page A4`.
   `web/lib/druk.js` odwzorowuje arkusze komórka w komórkę (szerokości kolumn, wysokości wierszy, scalenia, ramki; Delegacja skala 84%, Raport 74%). Porównane 11.10.2026 z PDF wyeksportowanym z `wydanie/…xlsx`: teksty identyczne, linie ramek w granicach ~2 mm. Domyślna wysokość wiersza: Raport 15 pt, Delegacja 14,3 pt (Excel zaokrągla wiersze do pikseli przy skali 84%).
 - Dane zostają w przeglądarce: autozapis w `localStorage` (każdy odczyt i zapis w try/catch) oraz eksport i import pliku `.json` podróży. Strona nic nie wysyła poza zapytaniami o kurs do NBP.
+  Plik: `{ format: "kalkulator-diety-zagranicznej", wersja: 1, zapisano, podroz }` (`web/lib/zapis.js`); import przepisuje tylko znane pola na pusty stan. Zmiana kształtu `podroz` → podnieś `WERSJA` i obsłuż stare pliki.
+- GitHub Pages: gałąź `main`, katalog główny; `index.html` w katalogu głównym przekierowuje na `web/`, `.nojekyll` wyłącza Jekylla.
 - `dane/kraje.json` – 120 państw `[nazwa, waluta, dieta, limit_noclegu]` z załącznika do rozporządzenia MPiPS z 29.01.2013 (t.j. Dz.U. 2023 poz. 2190), skopiowane z wersji excelowej.
 
 ## Reguły merytoryczne

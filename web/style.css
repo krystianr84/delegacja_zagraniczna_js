@@ -248,3 +248,5 @@ input.blad, select.blad { background: var(--blad-tlo); color: var(--blad); font-
   .kartka:last-child { break-after: auto; }
   * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }
+
+.zapis-status { font-size: 0.8rem; color: var(--ok); }

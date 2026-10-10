@@ -5,6 +5,7 @@ import { pobierzKurs, zastosujReczne, dzienSzukany, dzisiaj, BladNBP } from './l
 import { daneDelegacji, daneRaportu, delegacjaHTML, raportHTML } from './lib/druk.js';
 import { pustyStan, przykladowyStan, pobierz, ustaw, widoczneEtapy, ETAPY, WALUTY_KOSZTOW } from './lib/model.js';
 import * as fmt from './lib/format.js';
+import { doPliku, zPliku, nazwaPliku, czyPusty, wczytajAutozapis, autozapis } from './lib/zapis.js';
 
 const $ = (sel, el = document) => el.querySelector(sel);
 const $$ = (sel, el = document) => [...el.querySelectorAll(sel)];
@@ -326,12 +327,62 @@ function naZmiane(ev) {
   if (!el) return;
   ustaw(stan, el.dataset.pole, el.value);
   przelicz();
+  zaplanujAutozapis();
 }
 
-function przyciskZPotwierdzeniem(btn, akcja) {
+/** Podmienia cały stan (przykład, wyczyszczenie, import pliku); komunikat zastępuje „Zapisano…”. */
+function zastapStan(nowy, komunikat = null) {
+  stan = nowy;
+  wypelnijPola();
+  przelicz();
+  zaplanujAutozapis(komunikat);
+}
+
+// ---------- autozapis i plik .json ----------
+
+let timerZapisu = null;
+
+function pokazStatusZapisu(tekst, blad = false) {
+  const el = $('#zapis-status');
+  el.textContent = tekst;
+  el.classList.toggle('blad-tekst', blad);
+}
+
+function zaplanujAutozapis(komunikat = null) {
+  clearTimeout(timerZapisu);
+  timerZapisu = setTimeout(() => {
+    if (autozapis(magazyn, stan)) pokazStatusZapisu(komunikat ?? (czyPusty(stan) ? '' : 'Zapisano w tej przeglądarce'));
+    else pokazStatusZapisu('Przeglądarka nie pozwala zapisać danych – użyj „Zapisz plik .json”', true);
+  }, 300);
+}
+
+function zapiszPlik() {
+  const blob = new Blob([JSON.stringify(doPliku(stan), null, 2) + '\n'], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = nazwaPliku(stan);
+  document.body.append(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  pokazStatusZapisu(`Zapisano plik ${a.download}`);
+}
+
+async function wczytajPlik(plik) {
+  if (!plik) return;
+  try {
+    if (plik.size > 1_000_000) throw new Error('Plik jest za duży (ponad 1 MB) – to nie jest plik podróży.');
+    zastapStan(zPliku(await plik.text()), `Wczytano plik ${plik.name}`);
+  } catch (e) {
+    pokazStatusZapisu(`Nie wczytano pliku ${plik.name}: ${e.message}`, true);
+  }
+}
+
+function przyciskZPotwierdzeniem(btn, akcja, czyPytac = () => true) {
   const tekst = btn.textContent;
   let timer = null;
   btn.addEventListener('click', () => {
+    if (!czyPytac()) { akcja(); return; }
     if (!btn.classList.contains('potwierdz')) {
       btn.classList.add('potwierdz');
       btn.textContent = 'Na pewno? Kliknij jeszcze raz';
@@ -357,13 +408,22 @@ async function start() {
   }
   mapaKrajow = new Map(kraje.map((k) => [k[0], k]));
   zbudujFormularz();
+  const zapisany = wczytajAutozapis(magazyn);
+  if (zapisany) {
+    stan = zapisany;
+    pokazStatusZapisu('Przywrócono dane z ostatniej wizyty');
+  }
   wypelnijPola();
 
   const main = $('#formularz');
   main.addEventListener('input', naZmiane);
   main.addEventListener('change', naZmiane);
-  $('#przyklad').addEventListener('click', () => { stan = przykladowyStan(); wypelnijPola(); przelicz(); });
-  przyciskZPotwierdzeniem($('#wyczysc'), () => { stan = pustyStan(); wypelnijPola(); przelicz(); });
+  // przykład nadpisuje formularz – pytaj, gdy coś już wpisano
+  przyciskZPotwierdzeniem($('#przyklad'), () => zastapStan(przykladowyStan()), () => !czyPusty(stan));
+  przyciskZPotwierdzeniem($('#wyczysc'), () => zastapStan(pustyStan()), () => !czyPusty(stan));
+  $('#zapisz-plik').addEventListener('click', zapiszPlik);
+  $('#wczytaj-plik').addEventListener('click', () => $('#plik').click());
+  $('#plik').addEventListener('change', (ev) => { wczytajPlik(ev.target.files[0]); ev.target.value = ''; });
   for (const b of $$('[data-drukuj]')) b.addEventListener('click', () => drukuj(b.dataset.drukuj));
   $('#podglad').addEventListener('toggle', pokazPodglad);
   for (const r of $$('input[name="podglad"]')) r.addEventListener('change', pokazPodglad);
