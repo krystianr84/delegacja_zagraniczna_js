@@ -234,22 +234,14 @@ function przelicz() {
 
 let ostatnieKursy = {};
 
-// marginesy stron jak w arkuszach Excela (cale → mm): Delegacja 0,5 / 0,4 / 0,4 / 0,4, Raport 0,6 / 0,5
-const MARGINESY = { delegacja: '12.7mm 10.2mm 10.2mm', raport: '15.2mm 12.7mm' };
-
 function htmlDruku(rodzaj) {
   return rodzaj === 'raport'
     ? raportHTML(daneRaportu(stan, mapaKrajow, ostatnieKursy, dzisiaj()))
     : delegacjaHTML(daneDelegacji(stan, mapaKrajow, ostatnieKursy));
 }
 
-function ustawStrone(rodzaj) {
-  $('#styl-strony').textContent = `@page { size: A4 portrait; margin: ${MARGINESY[rodzaj]}; }`;
-}
-
 function drukuj(rodzaj) {
   $('#druk').innerHTML = htmlDruku(rodzaj);
-  ustawStrone(rodzaj);
   window.print();
 }
 
@@ -433,7 +425,6 @@ async function start() {
     if ($('#druk').innerHTML) return;
     const rodzaj = $('#podglad').open ? $('input[name="podglad"]:checked').value : 'delegacja';
     $('#druk').innerHTML = htmlDruku(rodzaj);
-    ustawStrone(rodzaj);
   });
   window.addEventListener('afterprint', () => { $('#druk').innerHTML = ''; });
   $('#pobierz-kursy').addEventListener('click', () => {

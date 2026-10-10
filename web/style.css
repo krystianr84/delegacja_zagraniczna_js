@@ -235,16 +235,23 @@ input.blad, select.blad { background: var(--blad-tlo); color: var(--blad); font-
   background: #fff;
   box-shadow: 0 1px 4px rgb(0 0 0 / 25%);
 }
-.podglad .kartka.delegacja { padding: 12.7mm 10.2mm 10.2mm; }
-.podglad .kartka.raport { padding: 15.2mm 12.7mm; }
+
+/* Marginesy jak w arkuszach Excela (cale → mm): Delegacja góra 0,5, boki 0,4; Raport góra 0,6, boki 0,5.
+   Na wydruku są wewnątrz kartki, a strona ma margines 0 – wtedy przeglądarka nie ma gdzie wstawić
+   swoich nagłówków i stopek (data, tytuł, adres strony). Każda kartka zaczyna nową stronę, więc górny
+   margines powtarza się na każdej stronie; dolny jest zbędny (treść kończy się wyżej). */
+.kartka.delegacja { padding: 12.7mm 10.2mm 10.2mm; }
+.kartka.raport { padding: 15.2mm 12.7mm; }
 
 #druk { display: none; }
+
+@page { size: A4 portrait; margin: 0; }
 
 @media print {
   body { background: #fff; }
   body > :not(#druk) { display: none !important; }
   #druk { display: block; }
-  .kartka { break-after: page; }
+  .kartka { break-after: page; padding-bottom: 0 !important; }
   .kartka:last-child { break-after: auto; }
   * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }

@@ -1,0 +1,31 @@
+# Testy przy każdym pushu i pull requeście: obliczenia (node --test) i strona w Chrome (bez okna).
+# Kursy NBP są w obu testach podstawiane, więc wynik nie zależy od sieci ani od dnia uruchomienia.
+name: testy
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  obliczenia:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node --test
+
+  przegladarka:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      # Chrome jest zainstalowany na obrazie ubuntu-latest (/usr/bin/google-chrome)
+      - run: node narzedzia/sprawdz-przegladarke.mjs

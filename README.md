@@ -1,6 +1,7 @@
 # Kalkulator diety zagranicznej (przeglądarka)
 
 [![Otwórz kalkulator](https://img.shields.io/badge/otw%C3%B3rz-kalkulator-2e75b6)](https://krystianr84.github.io/delegacja_zagraniczna_js/)
+[![Testy](https://github.com/krystianr84/delegacja_zagraniczna_js/actions/workflows/testy.yml/badge.svg)](https://github.com/krystianr84/delegacja_zagraniczna_js/actions/workflows/testy.yml)
 [![Strona](https://img.shields.io/github/deployments/krystianr84/delegacja_zagraniczna_js/github-pages?label=strona)](https://github.com/krystianr84/delegacja_zagraniczna_js/deployments/github-pages)
 [![Licencja: MIT](https://img.shields.io/badge/licencja-MIT-blue.svg)](LICENSE)
 [![Wersja excelowa](https://img.shields.io/badge/wersja%20excelowa-delegacja__zagraniczna__plus-217346)](https://github.com/krystianr84/delegacja_zagraniczna_plus)
@@ -69,7 +70,7 @@ Formularz zapisuje się w tej przeglądarce na tym urządzeniu. W trybie prywatn
 Zapisz plik `.json` (**Zapisz plik .json**), prześlij go sobie (mail, komunikator, dysk) i otwórz na drugim urządzeniu przyciskiem **Wczytaj plik .json**.
 
 **Na wydruku jest data, tytuł albo adres strony**
-To nagłówki i stopki przeglądarki. W oknie drukowania rozwiń *Więcej ustawień* i odznacz **Nagłówki i stopki**. Ustaw format **A4** i skalę **100%** (domyślna).
+To nagłówki i stopki przeglądarki. Chrome i Edge ich nie drukują – strona nie zostawia na nie miejsca na kartce. Jeśli widzisz je w innej przeglądarce, w oknie drukowania rozwiń *Więcej ustawień* i odznacz **Nagłówki i stopki**. Ustaw format **A4** i skalę **100%** (domyślna).
 
 **Jak zrobić PDF na telefonie?**
 Kliknij **Drukuj delegację** albo **Drukuj raport**. Na Androidzie wybierz drukarkę **Zapisz jako PDF**, na iPhonie w oknie drukowania użyj **Udostępnij → Zachowaj w Plikach**.
@@ -144,16 +145,23 @@ web/
   lib/zapis.js       plik .json i autozapis
   lib/format.js, lib/model.js
 dane/kraje.json      120 państw: [nazwa, waluta, dieta, limit noclegu]
-test/                testy (node --test)
-narzedzia/serwer.js  podgląd lokalny
+test/                testy obliczeń (node --test)
+narzedzia/serwer.js                podgląd lokalny
+narzedzia/sprawdz-przegladarke.mjs testy strony w Chrome / Edge (bez okna)
+.github/workflows/   testy przy każdym pushu, co tydzień test na żywym NBP
 docs/                zrzuty ekranu do README
 ```
 
 ```sh
-npm test                 # albo: node --test   (Node 20+)
-NBP_LIVE=1 node --test   # dodatkowo test na żywym api.nbp.pl
-npm start                # albo: node narzedzia/serwer.js → http://localhost:8080/web/
+npm test                     # obliczenia: node --test   (Node 20+)
+npm run test:przegladarka    # strona w Chrome / Edge bez okna (CHROME=ścieżka – inna przeglądarka)
+NBP_LIVE=1 node --test       # dodatkowo test na żywym api.nbp.pl
+npm start                    # podgląd: node narzedzia/serwer.js → http://localhost:8080/web/
 ```
+
+**Testy strony** uruchamiają przeglądarkę bez okna i przechodzą przez formularz jak użytkownik: przykład i przypadek kontrolny, błędy w danych, druk Delegacji i Raportu do PDF (liczba stron, A4, brak nagłówków przeglądarki), autozapis, zapis i import pliku, brak połączenia z NBP i kurs ręczny, widok telefonu. Zapytania do `api.nbp.pl` są przechwytywane i obsługiwane prawdziwymi notowaniami zapisanymi w skrypcie, więc wynik nie zależy od sieci.
+
+**GitHub Actions**: przy każdym pushu i pull requeście `testy` (obliczenia + strona w Chrome); w każdy poniedziałek `nbp-na-zywo` sprawdza, czy api.nbp.pl zachowuje się tak, jak zakłada `web/lib/nbp.js`.
 
 Moduły ES nie działają z `file://`, więc do podglądu potrzebny jest serwer (wystarczy dowolny serwer plików statycznych uruchomiony w katalogu głównym repozytorium).
 

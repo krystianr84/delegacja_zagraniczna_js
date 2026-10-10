@@ -5,6 +5,7 @@
   "license": "MIT",
   "scripts": {
     "test": "node --test",
-    "start": "node narzedzia/serwer.js"
+    "start": "node narzedzia/serwer.js",
+    "test:przegladarka": "node narzedzia/sprawdz-przegladarke.mjs"
   }
 }

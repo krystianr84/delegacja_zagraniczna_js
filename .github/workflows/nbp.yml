@@ -1,0 +1,23 @@
+# Raz w tygodniu: testy na żywym api.nbp.pl – wykrywają zmiany w zachowaniu API
+# (np. 400 zamiast 404 dla dat z przyszłości), zanim zauważy je użytkownik.
+name: nbp-na-zywo
+
+on:
+  schedule:
+    - cron: '17 7 * * 1'   # poniedziałek 7:17 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  nbp:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node --test test/nbp.test.js
+        env:
+          NBP_LIVE: '1'
