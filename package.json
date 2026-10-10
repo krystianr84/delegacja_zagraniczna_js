@@ -1,0 +1,9 @@
+{
+  "name": "kalkulator-diety-zagranicznej",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "scripts": {
+    "test": "node --test"
+  }
+}
