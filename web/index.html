@@ -6,6 +6,7 @@
   <title>Kalkulator diety zagranicznej</title>
   <meta name="description" content="Dieta zagraniczna wg rozporządzenia MPiPS z 29.01.2013 z kursem średnim NBP – wyniki zgodne z wersją excelową.">
   <link rel="stylesheet" href="style.css">
+  <style id="styl-strony">@page { size: A4 portrait; margin: 12.7mm 10.2mm 10.2mm; }</style>
   <script type="module" src="app.js"></script>
 </head>
 <body>
@@ -152,7 +153,26 @@
         </table>
       </div>
     </section>
+    <section>
+      <h2>6. Druk</h2>
+      <p class="opis">Druk otwiera okno drukowania przeglądarki – wybierz drukarkę albo „Zapisz jako PDF”. Format A4, skala 100%;
+        wyłącz nagłówki i stopki przeglądarki (data, adres strony).</p>
+      <p class="akcje-wiersz">
+        <button type="button" data-drukuj="delegacja">Drukuj delegację (2 strony)</button>
+        <button type="button" data-drukuj="raport">Drukuj raport (1 strona)</button>
+      </p>
+      <details id="podglad" class="uwagi">
+        <summary>Podgląd wydruku</summary>
+        <p class="przelacznik" role="radiogroup" aria-label="Rodzaj wydruku">
+          <label><input type="radio" name="podglad" value="delegacja" checked> Delegacja</label>
+          <label><input type="radio" name="podglad" value="raport"> Raport</label>
+        </p>
+        <div id="podglad-tresc" class="podglad"></div>
+      </details>
+    </section>
   </main>
+
+  <div id="druk"></div>
 
   <footer class="stopka">
     <p>Liczona jest tylko dieta zagraniczna (§12–§14) wg rozporządzenia MPiPS z 29.01.2013 (t.j. Dz.U. 2023 poz. 2190). Przejazdy, ryczałty, noclegi i inne wydatki wpisujesz kwotami – tylko do druku delegacji.

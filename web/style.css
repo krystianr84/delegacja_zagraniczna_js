@@ -203,3 +203,48 @@ input.blad, select.blad { background: var(--blad-tlo); color: var(--blad); font-
 .stopka { max-width: 1200px; margin: 0 auto; padding: 0 16px 32px; font-size: 0.75rem; color: var(--przygaszony); }
 
 [hidden] { display: none !important; }
+
+/* ---------- druk (arkusze z web/lib/druk.js) ---------- */
+
+.przelacznik { display: flex; gap: 16px; margin: 8px 0; }
+.przelacznik label { flex-direction: row; align-items: center; gap: 6px; font-weight: 400; }
+.przelacznik input { width: auto; }
+
+.arkusz {
+  border-collapse: collapse;
+  table-layout: fixed;
+  margin: 0 auto;
+  font-family: Arial, Helvetica, "Liberation Sans", sans-serif;
+  color: #000;
+  background: #fff;
+}
+.arkusz td {
+  padding: 0 0.5mm;
+  line-height: 1.15;
+  white-space: pre;      /* bez zawijania, spacje zachowane – jak komórka Excela */
+  overflow: visible;
+}
+.arkusz td.zmiesc { overflow: hidden; text-overflow: ellipsis; }
+
+/* podgląd na ekranie: kartki A4 z marginesami jak na wydruku */
+.podglad { padding: 8px 0; background: #e6e8ec; border-radius: var(--promien); }
+.podglad .kartka {
+  width: 210mm;
+  min-height: 297mm;
+  margin: 0 auto 8px;
+  background: #fff;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 25%);
+}
+.podglad .kartka.delegacja { padding: 12.7mm 10.2mm 10.2mm; }
+.podglad .kartka.raport { padding: 15.2mm 12.7mm; }
+
+#druk { display: none; }
+
+@media print {
+  body { background: #fff; }
+  body > :not(#druk) { display: none !important; }
+  #druk { display: block; }
+  .kartka { break-after: page; }
+  .kartka:last-child { break-after: auto; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}

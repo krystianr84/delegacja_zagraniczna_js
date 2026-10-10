@@ -1,7 +1,8 @@
 // Formularz Kalkulatora: stan → obliczenia (web/lib) → wynik na stronie. Cała logika liczenia jest w web/lib.
 
 import { oblicz, obliczEtapy, obliczKoszty, wgWalut, walutyWUzyciu, polaZBledem, KOSZTY } from './lib/obliczenia.js';
-import { pobierzKurs, zastosujReczne, dzienSzukany, BladNBP } from './lib/nbp.js';
+import { pobierzKurs, zastosujReczne, dzienSzukany, dzisiaj, BladNBP } from './lib/nbp.js';
+import { daneDelegacji, daneRaportu, delegacjaHTML, raportHTML } from './lib/druk.js';
 import { pustyStan, przykladowyStan, pobierz, ustaw, widoczneEtapy, ETAPY, WALUTY_KOSZTOW } from './lib/model.js';
 import * as fmt from './lib/format.js';
 
@@ -223,7 +224,49 @@ function przelicz() {
 
   // czerwone pola
   for (const el of $$('[data-pole]')) el.classList.toggle('blad', bledy.has(el.dataset.pole));
+  ostatnieKursy = kursy;
+  pokazPodglad();
   zaplanujPobieranie();
+}
+
+// ---------- druk ----------
+
+let ostatnieKursy = {};
+
+// marginesy stron jak w arkuszach Excela (cale → mm): Delegacja 0,5 / 0,4 / 0,4 / 0,4, Raport 0,6 / 0,5
+const MARGINESY = { delegacja: '12.7mm 10.2mm 10.2mm', raport: '15.2mm 12.7mm' };
+
+function htmlDruku(rodzaj) {
+  return rodzaj === 'raport'
+    ? raportHTML(daneRaportu(stan, mapaKrajow, ostatnieKursy, dzisiaj()))
+    : delegacjaHTML(daneDelegacji(stan, mapaKrajow, ostatnieKursy));
+}
+
+function ustawStrone(rodzaj) {
+  $('#styl-strony').textContent = `@page { size: A4 portrait; margin: ${MARGINESY[rodzaj]}; }`;
+}
+
+function drukuj(rodzaj) {
+  $('#druk').innerHTML = htmlDruku(rodzaj);
+  ustawStrone(rodzaj);
+  window.print();
+}
+
+function pokazPodglad() {
+  const podglad = $('#podglad');
+  if (!podglad.open) return;
+  const rodzaj = $('input[name="podglad"]:checked').value;
+  const tresc = $('#podglad-tresc');
+  tresc.innerHTML = htmlDruku(rodzaj);
+  tresc.dataset.rodzaj = rodzaj;
+  dopasujPodglad();
+}
+
+/** Kartka A4 (210 mm) pomniejszona do szerokości ekranu (zoom), żeby na telefonie widać było całą stronę. */
+function dopasujPodglad() {
+  const tresc = $('#podglad-tresc');
+  const a4 = 210 * 96 / 25.4 + 2;
+  tresc.style.zoom = Math.min(1, tresc.parentElement.clientWidth / a4).toFixed(3);
 }
 
 function komorki(tr, wartosci) {
@@ -321,6 +364,18 @@ async function start() {
   main.addEventListener('change', naZmiane);
   $('#przyklad').addEventListener('click', () => { stan = przykladowyStan(); wypelnijPola(); przelicz(); });
   przyciskZPotwierdzeniem($('#wyczysc'), () => { stan = pustyStan(); wypelnijPola(); przelicz(); });
+  for (const b of $$('[data-drukuj]')) b.addEventListener('click', () => drukuj(b.dataset.drukuj));
+  $('#podglad').addEventListener('toggle', pokazPodglad);
+  for (const r of $$('input[name="podglad"]')) r.addEventListener('change', pokazPodglad);
+  window.addEventListener('resize', () => { if ($('#podglad').open) dopasujPodglad(); });
+  // Ctrl+P bez przycisku: drukuj to, co jest w podglądzie (domyślnie Delegację)
+  window.addEventListener('beforeprint', () => {
+    if ($('#druk').innerHTML) return;
+    const rodzaj = $('#podglad').open ? $('input[name="podglad"]:checked').value : 'delegacja';
+    $('#druk').innerHTML = htmlDruku(rodzaj);
+    ustawStrone(rodzaj);
+  });
+  window.addEventListener('afterprint', () => { $('#druk').innerHTML = ''; });
   $('#pobierz-kursy').addEventListener('click', () => {
     for (const [k, v] of kursyNBP) if (v.stan === 'blad') kursyNBP.delete(k);
     pobierzBrakujace();
