@@ -170,6 +170,14 @@ input.blad, select.blad { background: var(--blad-tlo); color: var(--blad); font-
 .grupa-miejsce h3 { color: var(--miejsce); }
 .grupa-przejazd { border-color: var(--przejazd); }
 .grupa-przejazd h3 { color: var(--przejazd); }
+/* pusty kolejny etap: tylko wybór kraju */
+.tylko-zwiniety { display: none; margin: 0; font-size: 0.85rem; color: var(--przygaszony); }
+.etap.zwiniety .tylko-zwiniety { display: block; }
+.etap.zwiniety .grupy { grid-template-columns: minmax(0, 420px); }
+.etap.zwiniety .grupa:not(.grupa-dieta),
+.etap.zwiniety .grupa-dieta > :not(.pole-kraj, .tylko-zwiniety) { display: none; }
+.etap.zwiniety .grupa { border-top: 0; background: none; padding: 0; }
+
 .posilki { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
 .siatka-przejazd { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
 .wynik-pole { display: flex; flex-direction: column; gap: 3px; font-size: 0.82rem; font-weight: 600; }

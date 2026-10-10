@@ -12,7 +12,7 @@
   <header class="pasek">
     <div class="pasek-tytul">
       <h1>Kalkulator diety zagranicznej</h1>
-      <p class="podtytul">wg rozporządzenia MPiPS z 29.01.2013 (t.j. Dz.U. 2023 poz. 2190) · kursy NBP pobierane automatycznie</p>
+      <p class="podtytul"><span data-wersja></span> · wg rozporządzenia MPiPS z 29.01.2013 (t.j. Dz.U. 2023 poz. 2190) · kursy NBP pobierane automatycznie</p>
     </div>
     <div class="kontrola" id="kontrola" role="status" aria-live="polite">Wczytywanie…</div>
     <div class="kafelki">
@@ -181,7 +181,10 @@
     <p>Liczona jest tylko dieta zagraniczna (§12–§14) wg rozporządzenia MPiPS z 29.01.2013 (t.j. Dz.U. 2023 poz. 2190). Przejazdy, ryczałty, noclegi i inne wydatki wpisujesz kwotami – tylko do druku delegacji.
       Strona nic nie wysyła poza zapytaniami o kurs do api.nbp.pl.</p>
     <p>Dane zostają w tej przeglądarce (autozapis). Żeby przenieść podróż na inne urządzenie albo zachować ją na później,
-      użyj „Zapisz plik .json”. · <a href="https://github.com/krystianr84/delegacja_zagraniczna_js" rel="noopener">Kod źródłowy</a> (licencja MIT)</p>
+      użyj „Zapisz plik .json”.</p>
+    <p><span data-wersja></span> · <a href="https://github.com/krystianr84/delegacja_zagraniczna_js/blob/main/CHANGELOG.md" rel="noopener">historia zmian</a>
+      · <a href="https://github.com/krystianr84/delegacja_zagraniczna_js/issues/new/choose" rel="noopener">zgłoś błąd</a>
+      · <a href="https://github.com/krystianr84/delegacja_zagraniczna_js" rel="noopener">kod źródłowy</a> (licencja MIT)</p>
   </footer>
 
   <template id="szablon-etapu">
@@ -190,7 +193,8 @@
       <div class="grupy">
         <div class="grupa grupa-dieta">
           <h3>Kraj, wjazd i zapewnione posiłki (dieta)</h3>
-          <label>Kraj<select data-pole="etapy.#.kraj" data-kraje></select>
+          <p class="tylko-zwiniety">Kolejny kraj w tej podróży? Wybierz go – pojawią się wjazd, posiłki i przejazd.</p>
+          <label class="pole-kraj">Kraj<select data-pole="etapy.#.kraj" data-kraje></select>
             <small data-wynik="etapy.#.stawka"></small></label>
           <label>Wjazd do kraju (data i godz.)<input type="datetime-local" data-pole="etapy.#.wjazd">
             <small data-podpowiedz-wjazd></small></label>

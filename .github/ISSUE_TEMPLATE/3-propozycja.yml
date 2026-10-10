@@ -1,0 +1,24 @@
+name: Propozycja zmiany
+description: Pomysł na nową funkcję albo ulepszenie kalkulatora.
+title: "[Propozycja] "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Kalkulator celowo liczy tylko **dietę zagraniczną** – dieta krajowa, kilometrówka i automatyczne ryczałty są poza zakresem.
+        Nadal możesz je zaproponować, napisz tylko, dlaczego są potrzebne.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Jaki problem rozwiązuje?
+      description: Np. „Przy wyjazdach do kilku krajów co tydzień muszę…”.
+    validations:
+      required: true
+  - type: textarea
+    id: rozwiazanie
+    attributes:
+      label: Jak to widzisz?
+      description: Co miałoby się zmienić na stronie albo na wydruku. Jeśli dotyczy przepisów, podaj paragraf rozporządzenia.
+    validations:
+      required: true

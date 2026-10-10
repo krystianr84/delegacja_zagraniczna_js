@@ -165,3 +165,15 @@ test('model: ścieżki i widoczne etapy', () => {
   assert.equal(widoczneEtapy(s), 5);
   assert.equal(widoczneEtapy(przykladowyStan()), 3);
 });
+
+test('model: pustyEtap – waluta domyślna się nie liczy', async () => {
+  const { pustyEtap } = await import('../web/lib/model.js');
+  const s = pustyStan();
+  assert.equal(pustyEtap(s.etapy[1]), true);
+  s.etapy[1].waluta = 'EUR';
+  assert.equal(pustyEtap(s.etapy[1]), true);
+  s.etapy[1].koszt = ' ';
+  assert.equal(pustyEtap(s.etapy[1]), true);
+  s.etapy[1].miejscowosc = 'Linz';
+  assert.equal(pustyEtap(s.etapy[1]), false);
+});

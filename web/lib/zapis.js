@@ -5,17 +5,18 @@
 import { pustyStan, ETAPY, WALUTY_KOSZTOW } from './model.js';
 import { KOSZTY } from './obliczenia.js';
 import { WALUTY, TRYB_W_DNIU, TRYB_DZIEN_PRZED } from './nbp.js';
+import { WERSJA as WERSJA_KALKULATORA } from './wersja.js';
 
 export const FORMAT = 'kalkulator-diety-zagranicznej';
-export const WERSJA = 1;
+export const WERSJA = 1;   // wersja formatu pliku (nie kalkulatora)
 export const KLUCZ_AUTOZAPISU = 'delegacja:stan';
 
 const tekst = (v) => (v === undefined || v === null ? '' : typeof v === 'object' ? '' : String(v));
 const obiekt = (v) => (v && typeof v === 'object' && !Array.isArray(v) ? v : {});
 
-/** Stan → obiekt pliku podróży. */
+/** Stan → obiekt pliku podróży (kalkulator = wersja strony, która zapisała plik – pomaga przy zgłoszeniach). */
 export function doPliku(stan, zapisano = new Date().toISOString()) {
-  return { format: FORMAT, wersja: WERSJA, zapisano, podroz: oczysc(stan) };
+  return { format: FORMAT, wersja: WERSJA, kalkulator: WERSJA_KALKULATORA, zapisano, podroz: oczysc(stan) };
 }
 
 /** Dowolne dane → pełny stan formularza (tylko znane pola, wszystkie jako tekst). */

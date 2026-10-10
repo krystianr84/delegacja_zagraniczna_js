@@ -16,6 +16,9 @@ const godzina = (s) => (/T(\d{2}:\d{2})/.exec(String(s ?? '')) ?? [, '00:00'])[1
 
 // ---------- dane: Delegacja ----------
 
+// Ostrzeżenie drukowane u góry Delegacji – formuła komórki B1 arkusza „Delegacja”. Reguły dat są podobne do
+// polaZBledem() w obliczenia.js, ale celowo osobne, bo Excel ma tu inną formułę (np. nie sprawdza przyjazdu po
+// końcu etapu). Zmieniając reguły dat etapów, sprawdź oba miejsca.
 function uwagaDelegacji(podroz, kontrola, kursy) {
   if (kontrola !== 'OK') return `UWAGA: ${kontrola}`;
   const e = podroz.etapy;
@@ -172,7 +175,8 @@ const pxKolumny = (w) => Math.trunc(w * 7 + 5);
 const MM_NA_PX = 25.4 / 96;
 
 /**
- * Arkusz jako HTML. Opis:
+ * Arkusz jako HTML – układ odwzorowany z build.py i porównany z PDF-em z Excela (test/wzorce/README.md).
+ * Opis:
  *   kolumny: szerokości (znaki) od kolumny A, wysokosci: { nrWiersza: pt }, domyslna: wysokość pozostałych wierszy
  *   (openpyxl: 15 pt; w PDF z Excela przy skali 84% wychodzi ~14,3 pt – Excel zaokrągla wiersze do pikseli), skala,
  *   komorki: [[zakres, tekst, styl]] – styl: { f: pt, b, i, kolor, h, v, wrap, tlo, klasa },

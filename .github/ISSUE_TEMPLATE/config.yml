@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Problemy i rozwiązania (FAQ)
+    url: https://github.com/krystianr84/delegacja_zagraniczna_js#problemy-i-rozwiązania
+    about: Najczęstsze problemy – kursy NBP, kurs ręczny, znikające dane, druk i PDF na telefonie, posiłki.
+  - name: Otwórz kalkulator
+    url: https://krystianr84.github.io/delegacja_zagraniczna_js/
+    about: Strona kalkulatora – zawsze najnowsza wersja.

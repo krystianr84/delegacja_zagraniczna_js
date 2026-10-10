@@ -20,6 +20,8 @@ To nowy, niezależny projekt. Wzorcem merytorycznym jest wcześniejsza wersja ex
   `@page { margin: 0 }`, a marginesy arkusza są paddingiem `.kartka` – dzięki temu Chrome/Edge nie drukują swoich nagłówków i stopek (test porównuje PDF z `displayHeaderFooter` i bez).
 - Dane zostają w przeglądarce: autozapis w `localStorage` (każdy odczyt i zapis w try/catch) oraz eksport i import pliku `.json` podróży. Strona nic nie wysyła poza zapytaniami o kurs do NBP.
   Plik: `{ format: "kalkulator-diety-zagranicznej", wersja: 1, zapisano, podroz }` (`web/lib/zapis.js`); import przepisuje tylko znane pola na pusty stan. Zmiana kształtu `podroz` → podnieś `WERSJA` i obsłuż stare pliki.
+- Wersja: `web/lib/wersja.js` (nagłówek i stopka strony, pole `kalkulator` w pliku `.json`). Przy zmianie widocznej dla użytkownika podnieś numer i dopisz wpis w `CHANGELOG.md` (format jak w wersji excelowej: Dodano / Zmieniono / Naprawiono).
+- Wzorce druku z Excela: `test/wzorce/` (PDF-y, `eksport-z-excela.ps1`, `porownaj.py`, opis kalibracji 14,3 pt). Reguły ostrzeżeń są w dwóch miejscach: `polaZBledem()` (formularz) i `uwagaDelegacji()` (druk) – celowo osobne, jak w Excelu.
 - GitHub Pages: gałąź `main`, katalog główny; `index.html` w katalogu głównym przekierowuje na `web/`, `.nojekyll` wyłącza Jekylla.
 - `dane/kraje.json` – 120 państw `[nazwa, waluta, dieta, limit_noclegu]` z załącznika do rozporządzenia MPiPS z 29.01.2013 (t.j. Dz.U. 2023 poz. 2190), skopiowane z wersji excelowej.
 

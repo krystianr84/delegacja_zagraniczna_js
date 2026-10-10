@@ -274,6 +274,7 @@ export function walutyWUzyciu(podroz, kraje) {
 /**
  * Klucze pól z błędem, np. 'etapy.0.kraj', 'powrot', 'koszty.noclegi.waluta', 'kursyReczne.EUR.tabela'.
  * Reguły jak w formatowaniu warunkowym arkusza – także te, które nie blokują wyniku (np. przyjazd poza etapem).
+ * Ostrzeżenie na druku Delegacji (uwagaDelegacji w druk.js) ma osobne, podobne reguły – przy zmianie sprawdź oba miejsca.
  */
 export function polaZBledem(podroz, kraje, kursy = {}, kursyReczne = {}) {
   const bledy = new Set();

@@ -20,7 +20,7 @@ Kalkulator diety z tytułu zagranicznej podróży służbowej. Działa w przegl�
 
 **[krystianr84.github.io/delegacja_zagraniczna_js](https://krystianr84.github.io/delegacja_zagraniczna_js/)**
 
-Zawsze najnowsza wersja, nic nie trzeba pobierać. Przycisk **Wczytaj przykład** wypełnia formularz fikcyjnymi danymi („Jan Kowalski”, Niemcy + Austria) – liczby z tego przykładu są rozpisane w sekcji [Przykład krok po kroku](#przykład-krok-po-kroku).
+Zawsze najnowsza wersja, nic nie trzeba pobierać. Numer wersji jest w stopce strony, opis zmian: [historia zmian](CHANGELOG.md). Przycisk **Wczytaj przykład** wypełnia formularz fikcyjnymi danymi („Jan Kowalski”, Niemcy + Austria) – liczby z tego przykładu są rozpisane w sekcji [Przykład krok po kroku](#przykład-krok-po-kroku).
 
 Na telefonie możesz dodać stronę do ekranu głównego (w menu przeglądarki: *Dodaj do ekranu głównego*), żeby mieć ją pod ręką.
 
@@ -129,7 +129,7 @@ Dieta razem: 215,53 EUR = **930,46 PLN**. Do tego noclegi 380 EUR × 4,3171 = 1 
 
 ## Zgłoś błąd albo pomysł
 
-Kalkulator liczy inaczej, niż powinien, strona nie działa albo masz pomysł na zmianę? [Załóż zgłoszenie](https://github.com/krystianr84/delegacja_zagraniczna_js/issues/new) – napisz, co wpisano, co wyszło i czego się spodziewano (najlepiej z przeglądarką i urządzeniem). Nie wpisuj w nim imion, nazwisk ani numerów poleceń, wystarczą kraje, daty i kwoty. Możesz też dołączyć plik `.json` podróży po usunięciu z niego danych osobowych.
+Kalkulator liczy inaczej, niż powinien, strona nie działa albo masz pomysł na zmianę? [Załóż zgłoszenie](https://github.com/krystianr84/delegacja_zagraniczna_js/issues/new/choose) – formularz podpowie, co podać. Nie wpisuj w nim imion, nazwisk ani numerów poleceń, wystarczą kraje, daty i kwoty. Możesz też dołączyć plik `.json` podróży po usunięciu z niego danych osobowych.
 
 ## Dla programistów
 
@@ -144,8 +144,10 @@ web/
   lib/druk.js        Delegacja i Raport (teksty jak formuły arkuszy + układ komórek)
   lib/zapis.js       plik .json i autozapis
   lib/format.js, lib/model.js
+  lib/wersja.js      numer wersji (przy zmianie także CHANGELOG.md)
 dane/kraje.json      120 państw: [nazwa, waluta, dieta, limit noclegu]
 test/                testy obliczeń (node --test)
+test/wzorce/         PDF-y z wersji excelowej i skrypty do porównania układu druku
 narzedzia/serwer.js                podgląd lokalny
 narzedzia/sprawdz-przegladarke.mjs testy strony w Chrome / Edge (bez okna)
 .github/workflows/   testy przy każdym pushu, co tydzień test na żywym NBP

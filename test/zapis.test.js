@@ -27,6 +27,7 @@ test('eksport → import: ten sam stan i ta sama dieta (930,46)', () => {
   assert.equal(json.format, FORMAT);
   assert.equal(json.wersja, 1);
   assert.equal(json.zapisano, '2026-10-11T10:00:00.000Z');
+  assert.match(json.kalkulator, /^\d+\.\d+$/);
   const w = zPliku(plik);
   assert.deepEqual(w, s);
   assert.equal(oblicz(w, kraje, EUR).dietaRazem, 930.46);

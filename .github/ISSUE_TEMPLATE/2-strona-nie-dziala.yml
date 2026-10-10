@@ -1,0 +1,63 @@
+name: Strona nie działa
+description: Kursy się nie pobierają, nie da się czegoś wpisać, wydrukować, zapisać albo wczytać.
+title: "[Problem] "
+labels: ["question"]
+body:
+  - type: checkboxes
+    id: faq
+    attributes:
+      label: Zanim zgłosisz
+      options:
+        - label: Przeczytałem/am sekcję [Problemy i rozwiązania](https://github.com/krystianr84/delegacja_zagraniczna_js#problemy-i-rozwiązania) w README.
+          required: true
+  - type: input
+    id: wersja
+    attributes:
+      label: Wersja kalkulatora
+      description: Widać ją w stopce strony, np. „ver. 1.1 (11.10.2026)”.
+      placeholder: ver. 1.1
+    validations:
+      required: true
+  - type: dropdown
+    id: przegladarka
+    attributes:
+      label: Przeglądarka
+      options:
+        - Chrome
+        - Edge
+        - Firefox
+        - Safari
+        - Samsung Internet
+        - inna
+    validations:
+      required: true
+  - type: dropdown
+    id: urzadzenie
+    attributes:
+      label: Urządzenie
+      options:
+        - Komputer z Windows
+        - Mac
+        - Telefon / tablet z Androidem
+        - iPhone / iPad
+        - inne
+    validations:
+      required: true
+  - type: input
+    id: kontrola
+    attributes:
+      label: Komunikat „Kontrola danych”
+      description: Tekst z góry strony, a przy kursach – także opis błędu w sekcji „Kursy NBP”.
+      placeholder: Brak kursu NBP – sprawdź datę kursu i internet albo wpisz kurs ręcznie
+  - type: textarea
+    id: opis
+    attributes:
+      label: Co się dzieje?
+      description: Co zrobiłeś/aś, czego oczekiwałeś/aś i co się stało zamiast tego.
+    validations:
+      required: true
+  - type: textarea
+    id: zrzut
+    attributes:
+      label: Zrzut ekranu (opcjonalnie)
+      description: Możesz wkleić obrazek – zasłoń na nim dane osobowe.

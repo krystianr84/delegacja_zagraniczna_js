@@ -6,7 +6,7 @@ import { WALUTY, TRYB_DZIEN_PRZED } from './nbp.js';
 export const ETAPY = 5;
 export const WALUTY_KOSZTOW = ['PLN', ...WALUTY];
 
-const pustyEtap = () => ({
+const nowyEtap = () => ({
   kraj: '', wjazd: '', sniadania: '', obiady: '', kolacje: '',
   miejscowosc: '', przyjazd: '', wyjazd: '',
   srodek: '', koszt: '', waluta: 'PLN',
@@ -19,7 +19,7 @@ export function pustyStan() {
     wyjazdZMiejscowosci: '', powrotDoMiejscowosci: '', dataKursu: '', trybKursu: TRYB_DZIEN_PRZED,
     zaliczka: '', terminRozliczenia: '', dowody: '',
     // sekcja 2: etapy (kraje) i powrót przez granicę
-    etapy: Array.from({ length: ETAPY }, pustyEtap),
+    etapy: Array.from({ length: ETAPY }, nowyEtap),
     powrot: '',
     powrotPrzejazd: { srodek: '', koszt: '', waluta: 'PLN' },
     // sekcja 5: pozostałe koszty
@@ -63,10 +63,15 @@ export function ustaw(stan, sciezka, wartosc) {
   o[ostatni] = wartosc;
 }
 
+/** Czy etap jest całkiem pusty (waluta przejazdu ma wartość domyślną, więc się nie liczy). */
+export function pustyEtap(e) {
+  return Object.entries(e).every(([k, v]) => k === 'waluta' || String(v ?? '').trim() === '');
+}
+
 /** Ile etapów pokazać: wszystkie wypełnione + jeden pusty (jak wyszarzanie wierszy w Excelu), co najmniej 1. */
 export function widoczneEtapy(stan) {
   let ostatni = -1;
-  stan.etapy.forEach((e, i) => { if (Object.entries(e).some(([k, v]) => k !== 'waluta' && String(v ?? '').trim() !== '')) ostatni = i; });
+  stan.etapy.forEach((e, i) => { if (!pustyEtap(e)) ostatni = i; });
   const zKrajem = stan.etapy.findLastIndex((e) => String(e.kraj ?? '').trim() !== '');
   return Math.min(ETAPY, Math.max(ostatni + 1, zKrajem + 2, 1));
 }

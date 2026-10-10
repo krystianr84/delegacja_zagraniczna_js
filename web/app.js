@@ -3,9 +3,10 @@
 import { oblicz, obliczEtapy, obliczKoszty, wgWalut, walutyWUzyciu, polaZBledem, KOSZTY } from './lib/obliczenia.js';
 import { pobierzKurs, zastosujReczne, dzienSzukany, dzisiaj, BladNBP } from './lib/nbp.js';
 import { daneDelegacji, daneRaportu, delegacjaHTML, raportHTML } from './lib/druk.js';
-import { pustyStan, przykladowyStan, pobierz, ustaw, widoczneEtapy, ETAPY, WALUTY_KOSZTOW } from './lib/model.js';
+import { pustyStan, przykladowyStan, pobierz, ustaw, widoczneEtapy, pustyEtap, ETAPY, WALUTY_KOSZTOW } from './lib/model.js';
 import * as fmt from './lib/format.js';
 import { doPliku, zPliku, nazwaPliku, czyPusty, wczytajAutozapis, autozapis } from './lib/zapis.js';
+import { WERSJA, WERSJA_DATA } from './lib/wersja.js';
 
 const $ = (sel, el = document) => el.querySelector(sel);
 const $$ = (sel, el = document) => [...el.querySelectorAll(sel)];
@@ -202,6 +203,8 @@ function przelicz() {
     const i = Number(el.dataset.etap);
     el.hidden = i >= widoczne;
     const e = stan.etapy[i];
+    // kolejny, całkiem pusty etap: tylko wybór kraju (krótszy formularz na telefonie)
+    el.classList.toggle('zwiniety', i > 0 && pustyEtap(e));
     const kraj = mapaKrajow.get(e.kraj);
     ustawWynik(`etapy.${i}.stawka`, kraj ? `${kraj[1]} · dieta ${fmt.kwota(kraj[2])} za dobę` : '');
     $(`[data-pole="etapy.${i}.wjazd"]`).classList.toggle('wymagane', i === 0 || !!e.kraj);
@@ -389,6 +392,7 @@ function przyciskZPotwierdzeniem(btn, akcja, czyPytac = () => true) {
 }
 
 async function start() {
+  for (const el of $$('[data-wersja]')) el.textContent = `ver. ${WERSJA} (${WERSJA_DATA})`;
   try {
     const odp = await fetch('../dane/kraje.json');
     if (!odp.ok) throw new Error(`HTTP ${odp.status}`);

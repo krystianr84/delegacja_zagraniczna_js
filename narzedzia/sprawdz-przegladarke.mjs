@@ -189,6 +189,26 @@ krok('przykład z build.py: dieta 930,46 zł, ogółem 2 570,96 zł, kurs 4,3171
   assert.ok(zapytaniaNBP.some((u) => u.includes('/EUR/2026-08-26/2026-09-09/')), 'zapytanie o kurs „dzień przed” 10.09.2026');
 });
 
+krok('pusty kolejny etap jest zwinięty do wyboru kraju i rozwija się po wybraniu kraju', async () => {
+  const stanEtapu = (i) => js(`(() => { const e = document.querySelector('#etapy .etap[data-etap="${i}"]');
+    return { ukryty: e.hidden, zwiniety: e.classList.contains('zwiniety'),
+      wjazdWidoczny: !!document.querySelector('[data-pole="etapy.${i}.wjazd"]').offsetParent,
+      krajWidoczny: !!document.querySelector('[data-pole="etapy.${i}.kraj"]').offsetParent }; })()`);
+  assert.deepEqual(await stanEtapu(0), { ukryty: false, zwiniety: false, wjazdWidoczny: true, krajWidoczny: true });
+  assert.deepEqual(await stanEtapu(2), { ukryty: false, zwiniety: true, wjazdWidoczny: false, krajWidoczny: true });
+  await ustaw([['etapy.2.kraj', 'Włochy']]);
+  assert.deepEqual(await stanEtapu(2), { ukryty: false, zwiniety: false, wjazdWidoczny: true, krajWidoczny: true });
+  await ustaw([['etapy.2.kraj', '']]);
+  assert.deepEqual(await stanEtapu(2), { ukryty: false, zwiniety: true, wjazdWidoczny: false, krajWidoczny: true });
+  assert.equal(await tekst('#kontrola'), 'OK');
+});
+
+krok('wersja kalkulatora w nagłówku i stopce', async () => {
+  const w = await js(`[...document.querySelectorAll('[data-wersja]')].map((e) => e.textContent)`);
+  assert.equal(w.length, 2);
+  for (const t of w) assert.match(t, /^ver\. \d+\.\d+ \(\d{2}\.\d{2}\.\d{4}\)$/);
+});
+
 krok('zapytanie do NBP: GET bez własnych nagłówków (inaczej preflight OPTIONS, a NBP odpowiada 404)', async () => {
   assert.ok(naglowkiNBP.length > 0);
   // nagłówki, które przeglądarka dodaje sama i które nie wymuszają preflight
