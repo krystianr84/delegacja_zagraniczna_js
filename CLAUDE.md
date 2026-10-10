@@ -23,6 +23,7 @@ To nowy, niezależny projekt. Wzorcem merytorycznym jest wcześniejsza wersja ex
 - Dieta (§13): liczona osobno dla każdego etapu. Pełne doby + reszta: ≤8 h → 1/3, ≤12 h → 1/2, >12 h → 1.
 - Posiłki (§14): −15% / −30% / −30% diety dziennej za każdy posiłek; dieta nie spada poniżej 0.
 - Kurs „z dnia X” = zakres X−14…X i ostatnie notowanie (weekendy i święta → 404). Jedno zapytanie obejmuje maksymalnie 93 dni.
+- API NBP (sprawdzone 10.10.2026): zakres kończący się po dzisiejszej dacie → 400 „Błędny zakres dat” (nie 404); zakres do dziś działa. `nbp.js` nie wysyła zapytań o przyszłe daty, a 400 traktuje jak brak kursu. Test na żywym API: `NBP_LIVE=1 node --test`.
 - Kwota słownie z odmianą złoty/złote/złotych.
 
 ## Zgodność z Excelem (decyzja właściciela, 10.10.2026)
