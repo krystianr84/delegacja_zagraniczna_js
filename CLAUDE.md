@@ -50,7 +50,11 @@ Wyniki mają być **identyczne jak w wersji excelowej, łącznie z zaokrąglenia
 
 Przypadek kontrolny: Węgry, wjazd 28.09.2026 12:00, powrót 02.10.2026 16:00, bez posiłków, kurs w dniu daty kursu 08.10.2026 → „4 dni 4 godz. 0 min”, 190,67 EUR, 834,92 PLN (kurs 4,3789, tabela 196/A/NBP/2026).
 
-## Plan prac
+## Świadomie odrzucone (decyzje właściciela)
+
+- **Tryb offline (service worker, manifest PWA)** – odrzucony 11.10.2026. Serwisant rozlicza delegację po powrocie do domu, z internetem, a kurs NBP i tak wymaga sieci (kurs ręczny też trzeba sprawdzić na nbp.pl). Otwarta wcześniej karta liczy bez sieci, a dane są w autozapisie. Service worker groziłby za to podawaniem starej wersji strony po aktualizacji – np. liczeniem delegacji po nieaktualnych stawkach diet. Nie proponuj ponownie bez nowego powodu od właściciela.
+
+## Plan prac (zrobiony – wersja 1.0; dalsze zmiany w `CHANGELOG.md`)
 
 1. `web/lib/obliczenia.js` + testy (przypadki z `test.ps1` i przypadek kontrolny).
 2. `web/lib/nbp.js` – pobieranie kursu, obsługa 404, kurs ręczny.
